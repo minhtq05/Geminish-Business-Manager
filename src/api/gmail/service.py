@@ -12,29 +12,46 @@ from googleapiclient.errors import HttpError
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
 
-class Message():
-    def __init__(self, id, sender, receiver, send_date, content_type, labels, subject, body):
-        self.id = id
-        self.sender = sender
-        self.receiver = receiver
-        self.send_date = send_date
-        self.content_type = content_type
-        self.labels = labels
-        self.subject = subject
-        self.body = body
+# class Message():
+#     def __init__(self, id, sender, receiver, send_date, content_type, labels, subject, body):
+#         self.id = id
+#         self.sender = sender
+#         self.receiver = receiver
+#         self.send_date = send_date
+#         self.content_type = content_type
+#         self.labels = labels
+#         self.subject = subject
+#         self.body = body
 
-    def __str__(self):
-        return {
-            'type': 'Gmail Message',
-            'id': self.id,
-            'sender': self.sender,
-            'receiver': self.receiver,
-            'send_date': self.send_date,
-            'content_type': self.content_type,
-            'labels': self.labels,
-            'subject': self.subject,
-            'body': self.body
-        }
+#     def __str__(self):
+#         return {
+#             'type': 'Gmail Message',
+#             'id': self.id,
+#             'sender': self.sender,
+#             'receiver': self.receiver,
+#             'send_date': self.send_date,
+#             'content_type': self.content_type,
+#             'labels': self.labels,
+#             'subject': self.subject,
+#             'body': self.body
+#         }
+#
+#     def __repr__(self):
+#         return self.__str__()
+
+
+def Message(id, sender, receiver, send_date, content_type, labels, subject, body):
+    return {
+        'type': 'Gmail Message',
+        'id': id,
+        'sender': sender,
+        'receiver': receiver,
+        'send_date': send_date,
+        'content_type': content_type,
+        'labels': labels,
+        'subject': subject,
+        'body': body
+    }
 
 
 # The main Gmail API service for loading messages, sending emails, and many other functionalities.
@@ -43,30 +60,48 @@ class GmailService():
         self.service = gmail_service()
         pass
 
-    def get_messages_id(self):
+    def get_messages_id(self, from_date=None):
         # Get the ids of all the messages.
         data = self.service.users().messages().list(userId='me').execute()
-        message_id_list = [message['id'] for message in data.get('messages', [])]
+        message_id_list = [message['id']
+                           for message in data.get('messages', [])]
         return message_id_list
-    
+
+    def get_raw_message(self, message_id):
+        message = self.service.users().messages().get(
+            userId='me', id=message_id).execute()
+        return message
+
     def get_message(self, message_id):
         # Get the content of a single message searched using the given id.
-        message = self.service.users().messages().get(userId='me', id=message_id).execute()
+        message = self.get_raw_message(message_id)
 
         labels = message.get('labelIds', [])
 
         payload = message.get('payload', {})
 
         headers = payload.get('headers', [])
-        
+
         sender, receiver, send_date, content_type, subject = None, None, None, None, None
 
         for item in headers:
             match item.get('name', ''):
                 case 'From':
-                    sender = item.get('value', '')
+                    sender = item.get('value', '').split(' <')
+                    if len(sender) == 1:
+                        sender = {'name': sender[0].strip(
+                            '\"'), 'email': sender[0]}
+                    else:
+                        sender = {'name': sender[0].strip(
+                            '\"'), 'email': sender[1][:-1]}
                 case 'To':
-                    receiver = item.get('value', '')
+                    receiver = item.get('value', '').split(' <')
+                    if len(receiver) == 1:
+                        receiver = {'name': receiver[0].strip(
+                            '\"'), 'email': receiver[0]}
+                    else:
+                        receiver = {'name': receiver[0].strip(
+                            '\"'), 'email': receiver[1][:-1]}
                 case 'Date':
                     send_date = item.get('value', '')
                 case 'Content-Type':
@@ -89,15 +124,8 @@ class GmailService():
         body = base64.urlsafe_b64decode(body).decode('utf-8').split('\r\n')
         body = re.sub('<.*?>', '', '\n'.join(body))
 
-
         return Message(message_id, sender, receiver, send_date, content_type, labels, subject, body)
 
-
-        msg = msg[0]
-        msg = base64.urlsafe_b64decode(msg['body']['data']).decode('utf-8').split('\r\n')
-        msg = re.sub('<.*?>', '', '\n'.join(msg))
-        return msg
-    
     def get_messages_list(self):
         # Get the contents of all the messages. Might be slow at the moment for large number of messages.
         ids = self.get_messages_id()
@@ -124,7 +152,7 @@ def gmail_service():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-            #   "credentials.json", SCOPES
+                #   "credentials.json", SCOPES
                 "api/gmail/client_secret_655058208454-pnfm3ogkn2grrvh8gc0e0h85tvn0usvl.apps.googleusercontent.com.json", SCOPES
             )
             creds = flow.run_local_server(port=0)
@@ -142,7 +170,6 @@ def gmail_service():
 
         return service
 
-
         # if not labels:
         #   print("No labels found.")
         #   return
@@ -154,7 +181,6 @@ def gmail_service():
         # TODO(developer) - Handle errors from gmail API.
         print(f"An error occurred: {error}")
         return None
-
 
 
 if __name__ == '__main__':

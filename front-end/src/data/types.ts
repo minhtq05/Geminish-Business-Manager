@@ -5,7 +5,7 @@ export type Email = {
   email: string;
   content: string;
 };
-export type TextCard = {
+export type AnalyticText = {
   heading: string;
   subheading?: string;
   content: string;

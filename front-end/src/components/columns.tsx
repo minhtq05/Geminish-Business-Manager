@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Column} from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,

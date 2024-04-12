@@ -22,3 +22,4 @@ Your responses need to be a single JSON object and messages body should be forma
 Here are the products:
 {ref_products}
 '''
+

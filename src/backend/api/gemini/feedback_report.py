@@ -54,7 +54,6 @@ Here is a sample report:
         }
     ]
 }
-
 ''' + f'''
 Here is a list of products:
 {ref_products}

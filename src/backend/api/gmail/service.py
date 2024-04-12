@@ -166,7 +166,7 @@ def gmail_service():
         # results = service.users().labels().list(userId="me").execute()
         # labels = results.get("labels", [])
 
-        print("GMail API services intialized")
+        print("Gmail API services intialized")
 
         return service
 

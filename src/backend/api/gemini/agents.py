@@ -1,4 +1,4 @@
-from api.gemini.config import GEMINI_API_KEY
+from backend.api.gemini.config import GEMINI_API_KEY
 import google.generativeai as genai
 from rich import print, print_json
 from typing import List

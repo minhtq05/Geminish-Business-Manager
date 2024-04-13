@@ -1,4 +1,4 @@
-from backend.api.gemini.config import GEMINI_API_KEY
+from api.gemini.config import GEMINI_API_KEY
 import google.generativeai as genai
 from rich import print, print_json
 from typing import List
@@ -6,9 +6,9 @@ import time
 import random
 
 
-from feedback_report import feedback_report_prompt
-from response_generate import response_generate_prompt
-from sample_feedback_emails import sample_feedback_emails_prompt
+from .feedback_report import feedback_report_prompt
+from .response_generate import response_generate_prompt
+from .sample_feedback_emails import sample_feedback_emails_prompt
 
 
 def Product(id: int, name: str, description: str):

@@ -7,10 +7,12 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from api.types import Message
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
+CREDENTIAL = "client_secret_877330635552-7f159rmq44osoihigpv21u44f5h983r6.apps.googleusercontent.com.json"
 
 # class Message():
 #     def __init__(self, id, sender, receiver, send_date, content_type, labels, subject, body):
@@ -38,20 +40,6 @@ SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 #
 #     def __repr__(self):
 #         return self.__str__()
-
-
-def Message(id, sender, receiver, send_date, content_type, labels, subject, body):
-    return {
-        'type': 'Gmail Message',
-        'id': id,
-        'sender': sender,
-        'receiver': receiver,
-        'send_date': send_date,
-        'content_type': content_type,
-        'labels': labels,
-        'subject': subject,
-        'body': body
-    }
 
 
 # The main Gmail API service for loading messages, sending emails, and many other functionalities.
@@ -153,7 +141,7 @@ def gmail_service():
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
                 #   "credentials.json", SCOPES
-                "api/gmail/client_secret_655058208454-pnfm3ogkn2grrvh8gc0e0h85tvn0usvl.apps.googleusercontent.com.json", SCOPES
+                f"api/gmail/{CREDENTIAL}", SCOPES
             )
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run

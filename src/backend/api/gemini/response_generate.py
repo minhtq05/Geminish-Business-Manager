@@ -24,4 +24,3 @@ Here is a list of products:
 And here are the users' feedback:
 {messages_format(messages)}
 '''
-

@@ -7,7 +7,7 @@ from datetime import datetime
 from rich import print
 
 #! Remember to get credentials from Firebase Console save it in the same directory as this file
-cred = credentials.Certificate("src/api/firestore/geminish-business-manage-cd958-firebase-adminsdk-qvuxe-d696f5541a.json")
+cred = credentials.Certificate("src/api/firestore/firestore-credential.json")
 
 """
 Businesses can have existing databases with different names for their users and messages databases.

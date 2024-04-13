@@ -1,4 +1,7 @@
-def sample_feedback_emails_prompt(ref_products, ref_company_name = None, num_feedbacks = 5):
+from typing import List
+from src.api.types import Message, Product
+
+def sample_feedback_emails_prompt(ref_products: List[Product], ref_company_name: str = None, num_feedbacks: int = 5) -> str:
     return f'''
 Generate {num_feedbacks} sample feedback emails from the below list of products with their descriptions from company named '{ref_company_name}'.
 Each feedback email has to mention a random number of products from the list (don't nessarily mention all of them) with random status (mostly positive, somewhat positive, neutral, somewhat negative, and mostly negative), and random reason for those status. Most importantly, each message has to have idea, feedback, tone, context, style, and reasons.

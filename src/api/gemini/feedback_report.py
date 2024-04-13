@@ -1,9 +1,10 @@
+from src.api.types import Message, Product
 from typing import List
 
-def messages_format(messages: List[dict]):
+def messages_format(messages: List[Message]) -> str:
     return '\n'.join([f'Sender: {msg.get("sender", {}).get('email', "Anonymous")}\n{msg.get("body", "")}' for msg in messages if msg.get("body", "") != ""])
 
-def feedback_report_prompt(ref_products, messages):
+def feedback_report_prompt(ref_products: List[Product], messages: List[Message]) -> str:
     return '''
 Analyse users' feedback emails and generate reports based on the products each user mentioned from the below list of products with their description.
 The reports should be formated in JSON.

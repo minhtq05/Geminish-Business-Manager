@@ -2,12 +2,19 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 from src.api.types import Message, User
+from src.api.config import FIREBASE_API_CREDENTIAL
 from typing import List, Union
-from datetime import datetime
+from datetime import datetime, timedelta
 from rich import print
 
-#! Remember to get credentials from Firebase Console save it in the same directory as this file
-cred = credentials.Certificate("src/api/firestore/firestore-credential.json")
+
+# all methods inside this module will only belong to the business you have initialized using init_business!
+# USE WITH CAUTION!
+
+
+#! Remember to get credentials from Firebase Console save it in the same directory as this file, put its name to an .env file, and name it as FIREBASE_CREDENTIAL.
+#! Also remember to remove your credential from 
+cred = credentials.Certificate(f"src/api/firestore/{FIREBASE_API_CREDENTIAL}")
 
 """
 Businesses can have existing databases with different names for their users and messages databases.
@@ -92,14 +99,24 @@ def get_all_emails() -> List[Message]:
 
 
 def delete_email_by_id(query_id: str) -> None:
-    emails_to_delete = emails_collection_ref.where("id", "==", query_id).stream()
-    
+    emails_to_delete = (
+        emails_collection_ref
+        .where("id", "==", query_id)
+        .limit(1)
+        .stream()
+    )
+
     for email in emails_to_delete:
         email.reference.delete()
 
 
 def get_email_by_id(query_id: str) -> Union[Message, None]:
-    email_with_id = emails_collection_ref.where("id", "==", query_id).stream()
+    email_with_id = (
+        emails_collection_ref
+        .where("id", "==", query_id)
+        .limit(1)
+        .stream()
+    )
     
     if not email_with_id:
         return None
@@ -107,36 +124,48 @@ def get_email_by_id(query_id: str) -> Union[Message, None]:
         
 
 def update_email_by_id(query_id: str, new_email: Message) -> None:
-    emails_to_update = emails_collection_ref.where("id", "==", query_id).stream()
+    emails_to_update = (
+        emails_collection_ref
+        .where("id", "==", query_id)
+        .limit(1)
+        .stream()
+    )
     
     for email in emails_to_update:
         email.reference.update(new_email)
     
 
 def get_email_by_date(query_date: datetime) -> List[Message]:
-    # can change to string 9
-    # asusume email's send date format as 04/12/2024 time abc abc
+    # Query returning every messages sent during query_date, from 00:00:00 am to 11:59:59 pm
     output = []
-    formatted_query_date = query_date.strftime("%m/%d/%Y")
-    emails_collection = emails_collection_ref.stream()
+    date_begin = query_date.timestamp()
+    date_end = (query_date + timedelta(days=1))
+    # formatted_query_date = query_date.strftime("%m/%d/%Y")
+    emails_collection = (
+        emails_collection_ref
+        .where(filter=FieldFilter("send_date", ">=", date_begin))
+        .where(filter=FieldFilter("send_date", "<", date_end))
+        .stream()
+    )
     
     for email in emails_collection:
-        doc_date = email.to_dict()["send_date"][:11]
-        if doc_date == formatted_query_date:
-            output.append(email)
+        output.append(email)
     return output
 
 
 def get_email_by_range(start_query_date: datetime, end_query_date: datetime) -> List[Message]:
     output = []
-    emails_collection = emails_collection_ref.stream()
-    start_date = start_query_date.date()
-    end_date = end_query_date.date()
+    start_date = start_query_date.timestamp()
+    end_date = end_query_date.timestamp()
+
+    emails_collection = (
+        emails_collection_ref
+        .where(filter=FieldFilter("send_date", ">=", start_date))
+        .where(filter=FieldFilter("send_date", "<=", end_date))
+    )
     
     for email in emails_collection:
-        curr_date = datetime.strptime(email.to_dict()["send_date"], "%m/%d/%Y").date()
-        if start_date <= curr_date <= end_date:
-            output.append(email)
+        output.append(email)
     return output
 
 

@@ -107,6 +107,10 @@ Your task is to:
         prompt = filter_spam_prompt(self.products, self.company)
         filter = self.execute('analyzer', prompt)
 
+        filter = filter.split(',')
+
+        filter = [True if x == "True" else False for x in filter]
+
         messages = [m for i, m in enumerate(messages) if filter[i]]
 
         return messages

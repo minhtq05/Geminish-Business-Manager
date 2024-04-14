@@ -7,12 +7,12 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from api.types import Message
+from src.api.types import Message
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
-CREDENTIAL = "client_secret_877330635552-7f159rmq44osoihigpv21u44f5h983r6.apps.googleusercontent.com.json"
+GMAIL_API_CREDENTIAL = "client_secret_877330635552-7f159rmq44osoihigpv21u44f5h983r6.apps.googleusercontent.com.json"
 
 # class Message():
 #     def __init__(self, id, sender, receiver, send_date, content_type, labels, subject, body):
@@ -48,21 +48,21 @@ class GmailService():
         self.service = gmail_service()
         pass
 
-    def get_messages_id(self, from_date=None):
+    def get_all_messages_id(self, from_date=None):
         # Get the ids of all the messages.
         data = self.service.users().messages().list(userId='me').execute()
-        message_id_list = [message['id']
+        message_ids = [message['id']
                            for message in data.get('messages', [])]
-        return message_id_list
+        return message_ids
 
-    def get_raw_message(self, message_id):
+    def get_raw_message_by_id(self, message_id):
         message = self.service.users().messages().get(
             userId='me', id=message_id).execute()
         return message
 
-    def get_message(self, message_id):
+    def get_message_by_id(self, message_id):
         # Get the content of a single message searched using the given id.
-        message = self.get_raw_message(message_id)
+        message = self.get_raw_message_by_id(message_id)
 
         labels = message.get('labelIds', [])
 
@@ -114,10 +114,10 @@ class GmailService():
 
         return Message(message_id, sender, receiver, send_date, content_type, labels, subject, body)
 
-    def get_messages_list(self):
+    def get_all_messages(self):
         # Get the contents of all the messages. Might be slow at the moment for large number of messages.
-        ids = self.get_messages_id()
-        msgs = [self.get_message(id) for id in ids]
+        ids = self.get_all_messages_id()
+        msgs = [self.get_message_by_id(id) for id in ids]
         return msgs
 
 
@@ -132,8 +132,8 @@ def gmail_service():
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    if os.path.exists("src/api/gmail/token.json"):
+        creds = Credentials.from_authorized_user_file("src/api/gmail/token.json", SCOPES)
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -141,11 +141,11 @@ def gmail_service():
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
                 #   "credentials.json", SCOPES
-                f"api/gmail/{CREDENTIAL}", SCOPES
+                f"src/api/gmail/{GMAIL_API_CREDENTIAL}", SCOPES
             )
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open("token.json", "w") as token:
+        with open("src/api/gmail/token.json", "w") as token:
             token.write(creds.to_json())
 
     try:

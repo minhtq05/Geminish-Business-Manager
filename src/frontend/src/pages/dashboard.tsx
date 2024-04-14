@@ -5,8 +5,7 @@ const Dashboard: React.FC = () => {
   return (
     <>
       <div className="flex flex-row items-center justify-betwwen gap-4 px-4">
-        <EmailTable />
-        <Analytics content={analyticsTexts} />
+        <p>ditme code lo</p>
       </div>
     </>
   );

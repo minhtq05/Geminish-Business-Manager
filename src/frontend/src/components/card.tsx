@@ -13,7 +13,7 @@ interface CardUIProps {
   heading: string;
   subheading?: string;
   className?: string;
-  children: React.ReactNode;
+  children: React.ReactNode | React.ReactNode[];
   props?: React.ComponentPropsWithoutRef<"div">;
 }
 
@@ -35,11 +35,10 @@ const CardUI: React.FC<CardUIProps> = ({
           {subheading}
         </CardDescription>
       </CardHeader>
-      <Separator />
-      <CardContent>{children}</CardContent>
-      <CardFooter>
+      <CardContent className="py-10">{children}</CardContent>
+      {/* <CardFooter>
         <Button>Learn more</Button>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 };

@@ -10,3 +10,7 @@ export type AnalyticText = {
   subheading?: string;
   content: string;
 };
+export type NavLink = {
+  name:string,
+  url:string,
+}

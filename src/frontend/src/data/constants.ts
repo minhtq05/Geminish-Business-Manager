@@ -83,7 +83,25 @@ export const data: Type.Email[] = [
     category: "client",
   },
 ];
+export const NavLinks: Type.NavLink[] = [
+  {
+    name:"Feedbacks",
+    url:"/feedback",
+  },
+  {
+    name:"Summary",
+    url:"/summary",
+  },
+  {
+    name:"Jira",
+    url:"/jira",
+  },
+  {
+    name:"Insights",
+    url:"/insights"
+  }
 
+]
 export const analyticsTexts: Type.AnalyticText[] = [
   {
     heading: "Positive Feedback Summary",

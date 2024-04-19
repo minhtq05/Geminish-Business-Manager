@@ -24,10 +24,10 @@ const Sidebar: React.FC = () => {
         })}
       </div>
       <CardUI
-        heading="Do you still need our help?"
-        className="border-0 w-[90%]"
+        headerComponent="Do you still need our help?"
+        className="border-0 w-[90%] border-slate-50 rounded-sm border-4 py-1 px-1"
         colorScheme={{
-          bgColor: "bg-indigo-600",
+          bgColor: "bg-indigo-500",
           textColor: "text-white",
         }}
       >
@@ -36,7 +36,7 @@ const Sidebar: React.FC = () => {
           placeholder="Send us an email!"
           className="w-full mb-2"
         />
-        <Button type="submit">Submit</Button>
+        <Button type="submit"  variant="secondary">Submit</Button>
       </CardUI>
       <div className="flex items-center justify-between flex-row md:w-[90%]">
         <User imgHref="https://github.com/shadcn.png" fallBack="User profile" />

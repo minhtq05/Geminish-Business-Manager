@@ -9,12 +9,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
+import React from "react";
 interface CardUIProps {
-  heading?: string;
-  subheading?: string;
+  headerComponent: React.ReactNode;
   className?: string;
   children?: React.ReactNode | React.ReactNode[];
-  footer?: React.ReactNode;
+  footerComponent?: React.ReactNode | string;
   props?: React.ComponentPropsWithoutRef<"div">;
   colorScheme?: {
     bgColor: string | "text-current";
@@ -23,12 +23,11 @@ interface CardUIProps {
 }
 
 const CardUI: React.FC<CardUIProps> = ({
-  heading,
-  subheading,
+  headerComponent,
   children,
   className,
   colorScheme,
-  footer,
+  footerComponent,
   ...props
 }: CardUIProps) => {
   const { bgColor, textColor } = colorScheme
@@ -43,13 +42,12 @@ const CardUI: React.FC<CardUIProps> = ({
       {...props}
     >
       <CardHeader className={cn("rounded-t-md", bgColor)}>
-        <CardTitle className={cn("text-4xl", textColor)}>{heading}</CardTitle>
-        <p className={cn("text-4xl", textColor)}>{subheading}</p>
+        {typeof headerComponent === 'string' ? <CardTitle className={cn("text-4xl", textColor)}>{headerComponent}</CardTitle> : headerComponent}
       </CardHeader>
       <CardContent className={cn("py-10 rounded-b-md", bgColor, textColor)}>
         {children}
       </CardContent>
-      {footer ? <CardFooter>{footer}</CardFooter> : null}
+      {typeof footerComponent === "string" ? <CardFooter className={cn("rounded-t-md", bgColor, textColor)}>{footerComponent}</CardFooter> : footerComponent}
     </Card>
   );
 };

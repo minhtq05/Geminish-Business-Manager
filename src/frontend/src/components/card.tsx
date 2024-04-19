@@ -10,11 +10,16 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 interface CardUIProps {
-  heading: string;
+  heading?: string;
   subheading?: string;
   className?: string;
-  children: React.ReactNode | React.ReactNode[];
+  children?: React.ReactNode | React.ReactNode[];
+  footer?: React.ReactNode;
   props?: React.ComponentPropsWithoutRef<"div">;
+  colorScheme?: {
+    bgColor: string | "text-current";
+    textColor: string | "bg-current";
+  };
 }
 
 const CardUI: React.FC<CardUIProps> = ({
@@ -22,23 +27,29 @@ const CardUI: React.FC<CardUIProps> = ({
   subheading,
   children,
   className,
+  colorScheme,
+  footer,
   ...props
 }: CardUIProps) => {
+  const { bgColor, textColor } = colorScheme
+    ? colorScheme
+    : { bgColor: "text-current", textColor: "bg-current" };
   return (
     <Card
-      className={cn("drop-shadow-sm subpixel-antialiased", className)}
+      className={cn(
+        "drop-shadow-lg subpixel-antialiased rounded-md",
+        className
+      )}
       {...props}
     >
-      <CardHeader>
-        <CardTitle className="text-4xl text-gray-800">{heading}</CardTitle>
-        <CardDescription className="text-gray-600text-gray-600">
-          {subheading}
-        </CardDescription>
+      <CardHeader className={cn("rounded-t-md", bgColor)}>
+        <CardTitle className={cn("text-4xl", textColor)}>{heading}</CardTitle>
+        <p className={cn("text-4xl", textColor)}>{subheading}</p>
       </CardHeader>
-      <CardContent className="py-10">{children}</CardContent>
-      {/* <CardFooter>
-        <Button>Learn more</Button>
-      </CardFooter> */}
+      <CardContent className={cn("py-10 rounded-b-md", bgColor, textColor)}>
+        {children}
+      </CardContent>
+      {footer ? <CardFooter>{footer}</CardFooter> : null}
     </Card>
   );
 };

@@ -36,7 +36,9 @@ const Sidebar: React.FC = () => {
           placeholder="Send us an email!"
           className="w-full mb-2"
         />
-        <Button type="submit"  variant="secondary">Submit</Button>
+        <Button type="submit" variant="secondary">
+          Submit
+        </Button>
       </CardUI>
       <div className="flex items-center justify-between flex-row md:w-[90%]">
         <User imgHref="https://github.com/shadcn.png" fallBack="User profile" />

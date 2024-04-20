@@ -12,17 +12,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
 }: DashboardLayoutProps) => {
   return (
-    <main className="h-[100dvh] w-full bg-slate-200">
-      <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel defaultSize={25} className="min-w-[fit-content] max-w-[40dvw]">
-          <Sidebar />
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={75} className="min-w-[fit-content]">
-          {children}
-        </ResizablePanel>
-      </ResizablePanelGroup>
-    </main>
+    <ResizablePanelGroup direction="horizontal">
+      <ResizablePanel
+        defaultSize={25}
+        className="min-w-[fit-content] max-w-[40dvw]"
+      >
+        <Sidebar />
+      </ResizablePanel>
+      <ResizableHandle withHandle />
+      <ResizablePanel defaultSize={75} className="min-w-[fit-content]">
+        {children}
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 };
 export default DashboardLayout;

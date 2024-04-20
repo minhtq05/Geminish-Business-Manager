@@ -42,12 +42,24 @@ const CardUI: React.FC<CardUIProps> = ({
       {...props}
     >
       <CardHeader className={cn("rounded-t-md", bgColor)}>
-        {typeof headerComponent === 'string' ? <CardTitle className={cn("text-4xl", textColor)}>{headerComponent}</CardTitle> : headerComponent}
+        {typeof headerComponent === "string" ? (
+          <CardTitle className={cn("text-4xl", textColor)}>
+            {headerComponent}
+          </CardTitle>
+        ) : (
+          headerComponent
+        )}
       </CardHeader>
       <CardContent className={cn("py-10 rounded-b-md", bgColor, textColor)}>
         {children}
       </CardContent>
-      {typeof footerComponent === "string" ? <CardFooter className={cn("rounded-t-md", bgColor, textColor)}>{footerComponent}</CardFooter> : footerComponent}
+      {typeof footerComponent === "string" ? (
+        <CardFooter className={cn("rounded-t-md", bgColor, textColor)}>
+          {footerComponent}
+        </CardFooter>
+      ) : (
+        footerComponent
+      )}
     </Card>
   );
 };

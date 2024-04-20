@@ -15,7 +15,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ className, content }) => {
     >
       {content.map((text) => {
         return (
-          <CardUI heading={text.heading} subheading={text.subheading}>
+          <CardUI headerComponent={text.heading}>
             <p>{text.content}</p>
           </CardUI>
         );

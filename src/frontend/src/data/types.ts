@@ -1,5 +1,3 @@
-import React from "react";
-
 export type Email = {
   id: string;
   date: string;
@@ -13,14 +11,14 @@ export type AnalyticText = {
   content: string;
 };
 export type NavLink = {
-  name:string,
-  url:string,
-}
+  name: string;
+  url: string;
+};
 export type feedbackType = {
   email: string;
   id: string;
   time: string;
   content: string;
-  user: React.ReactNode;
+  user: { name: string; imgHref: string };
   tags: string[];
-}
+};

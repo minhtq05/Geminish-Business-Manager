@@ -81,12 +81,17 @@
 }
 
 .links:hover {
-  background-color: #F4F5F5;
+  background-color: rgb(227, 221, 252);
   color: #7759EFff;
   font-weight: 700;
 }
+
 .vertical-expandable-text {
   display: inline-block;
   white-space: normal;
   word-break: break-word;
+}
+
+.flexcard {
+  flex-basis: content;
 }

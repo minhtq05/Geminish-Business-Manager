@@ -1,6 +1,6 @@
-import EmailTable from "@/components/emailTable";
-import { analyticsTexts } from "@/data/constants";
-import Analytics from "@/components/analytics";
+// import EmailTable from "@/components/emailTable";
+// import { analyticsTexts } from "@/data/constants";
+// import Analytics from "@/components/analytics";
 import graphics from "@/assets/nothinghere.jpg";
 const Home: React.FC = () => {
   return (

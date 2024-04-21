@@ -35,21 +35,31 @@ const CardUI: React.FC<CardUIProps> = ({
     : { bgColor: "text-current", textColor: "bg-current" };
   return (
     <Card
-      className={cn(
-        "drop-shadow-lg subpixel-antialiased rounded-md",
-        className
-      )}
+      className={cn("lg subpixel-antialiased rounded-md", className)}
       {...props}
     >
       <CardHeader className={cn("px-2 rounded-t-md", bgColor, textColor)}>
-        {typeof headerComponent === "string" ? <CardTitle>{headerComponent}</CardTitle> : headerComponent}
+        {typeof headerComponent === "string" ? (
+          <CardTitle className="font-extrabold">{headerComponent}</CardTitle>
+        ) : (
+          headerComponent
+        )}
       </CardHeader>
-      <CardContent className={cn("px-2 py-10", bgColor, textColor)}>
+      <CardContent
+        className={cn(
+          "px-2 py-10",
+          bgColor,
+          textColor,
+          !footerComponent ? "rounded-b-md" : ""
+        )}
+      >
         {children}
       </CardContent>
-      <CardFooter className={cn("px-2 py-2 rounded-b-md", bgColor)}>
-        {footerComponent}
-      </CardFooter>
+      {footerComponent ? (
+        <CardFooter className={cn("px-2 py-2 rounded-b-md", bgColor)}>
+          {footerComponent}
+        </CardFooter>
+      ) : null}
     </Card>
   );
 };

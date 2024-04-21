@@ -2,7 +2,7 @@ import { Routes, Route, BrowserRouter } from "react-router-dom";
 import DashboardLayout from "./components/layout/dashboardLayout";
 import FeedbackPage from "./pages/feedback";
 import Home from "./pages/home";
-import { feedbackData } from "./data/constants";
+import { EmailData } from "./data/constants";
 
 function App() {
   return (
@@ -21,7 +21,7 @@ function App() {
           path="/feedback"
           element={
             <DashboardLayout>
-              <FeedbackPage feedbackData={feedbackData} />
+              <FeedbackPage feedbackData={EmailData} />
             </DashboardLayout>
           }
         />

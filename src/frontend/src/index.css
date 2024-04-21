@@ -85,3 +85,8 @@
   color: #7759EFff;
   font-weight: 700;
 }
+.vertical-expandable-text {
+  display: inline-block;
+  white-space: normal;
+  word-break: break-word;
+}

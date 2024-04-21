@@ -1,9 +1,10 @@
-export type Email = {
+export type EmailType = {
   id: string;
   date: string;
   category: "feedback" | "client" | "spam" | "others";
   email: string;
-  content: string;
+  content: {heading:string, body:string};
+  user:{name:string,imgHref:string}
 };
 export type AnalyticText = {
   heading: string;

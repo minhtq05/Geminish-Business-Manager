@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 const Sidebar: React.FC = () => {
   return (
-    <aside className="w-full h-full flex flex-col items-center justify-between bg-gray-50 subpixel-antialiased">
+    <aside className="w-full h-[100dvh] flex flex-col items-center justify-between bg-gray-50 subpixel-antialiased sticky top-0">
       <IoMdBusiness />
       <div className="flex flex-col items-left justify-evenly w-full gap-2 md:px-4">
         {NavLinks.map((navItem) => {

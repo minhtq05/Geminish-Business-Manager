@@ -7,10 +7,31 @@ import time
 import random
 
 
-from .feedback_report import feedback_report_prompt
-from .response_generate import response_generate_prompt
-from .sample_feedback_emails import sample_feedback_emails_prompt
-from .filter_spam import filter_spam_prompt
+from src.api.gemini.prompts import feedback_report_prompt, response_generate_prompt, sample_feedback_emails_prompt, filter_spam_prompt
+
+
+_safety_settings = [
+    {
+        "category": "HARM_CATEGORY_DANGEROUS",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_HARASSMENT",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_HATE_SPEECH",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+        "threshold": "BLOCK_NONE",
+    },
+]
 
 
 class GeminiCustomerFeedbackAgent():
@@ -19,10 +40,10 @@ class GeminiCustomerFeedbackAgent():
     This wrapper is customized as a business agent, helping businesses in managing their products.
     '''
 
-    def __init__(self, role: str = "Customer Feedback Manager", background: str = 'You have outstanding knowledge in understanding customers and product feedback.', company: str = 'Random Company', products: List = None, api: str = GEMINI_API_KEY, llm='gemini-1.0-pro-latest', language='English'):
+    def __init__(self, role: str = "Customer Feedback Manager", background: str = 'You have outstanding knowledge in understanding customers and product feedback.', business_name: str = 'Random Business', products: List = None, api: str = GEMINI_API_KEY, llm: str = 'gemini-1.0-pro-latest', language: str = 'English'):
         self.role = role
         self.background = background
-        self.company = company
+        self.business_name = business_name
         self.products = products
         self.language = language
         genai.configure(api_key=api)
@@ -70,13 +91,20 @@ Your task is to:
         if llm_type is None:
             return 'No role was provided.'
         elif llm_type == 'analyzer':
-            res = self.llm_analizer.generate_content(prompt)
+            res = self.llm_analizer.generate_content(prompt, safety_settings=_safety_settings)
         elif llm_type == 'generator':
-            res = self.llm_generator.generate_content(prompt)
+            res = self.llm_generator.generate_content(prompt, safety_settings=_safety_settings)
         else:
             return 'Unknown role.'
 
-        return str(res.text)
+        print(res)
+        return ""
+
+        text = res.get('text', None)
+        if text is not None:
+            return str(text)
+        return res
+    
 
     def get_feedback_report(self, messages: List[Message] = None):
         if messages is not None:
@@ -96,7 +124,7 @@ Your task is to:
         """
         Generate sample feedback messages and later prompt the users to reply to those messages and learn their styles and tones.
         """
-        prompt = sample_feedback_emails_prompt(self.products, self.company, 5)
+        prompt = sample_feedback_emails_prompt(self.products, self.business, 5)
 
         return self.execute('generator', prompt)
     
@@ -104,7 +132,7 @@ Your task is to:
         """
         Filter spam and unrelated messages from a list of messages
         """
-        prompt = filter_spam_prompt(self.products, self.company)
+        prompt = filter_spam_prompt(self.products, self.business, messages)
         filter = self.execute('analyzer', prompt)
 
         filter = filter.split(',')

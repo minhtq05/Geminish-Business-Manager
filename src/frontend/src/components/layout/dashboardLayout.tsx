@@ -15,14 +15,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     <ResizablePanelGroup direction="horizontal">
       <ResizablePanel
         defaultSize={25}
-        className="min-w-[fit-content] md:max-w-[fit-content + 10dvw] relative h-full"
+        className="min-w-[fit-content] md:max-w-[fit-content] relative h-full"
       >
         <Sidebar />
       </ResizablePanel>
-      <ResizableHandle withHandle />
+      <ResizableHandle />
       <ResizablePanel
         defaultSize={75}
-        className="min-w-[fit-content] overflow-x-hidden overflow-y-auto h-full "
+        className="h-full"
       >
         {children}
       </ResizablePanel>

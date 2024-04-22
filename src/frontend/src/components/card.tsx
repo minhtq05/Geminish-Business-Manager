@@ -1,13 +1,10 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import React from "react";
 interface CardUIProps {
@@ -35,10 +32,10 @@ const CardUI: React.FC<CardUIProps> = ({
     : { bgColor: "text-current", textColor: "bg-current" };
   return (
     <Card
-      className={cn("lg subpixel-antialiased rounded-md", className)}
+      className={cn("lg subpixel-antialiased rounded-md", className, bgColor)}
       {...props}
     >
-      <CardHeader className={cn("px-2 rounded-t-md", bgColor, textColor)}>
+      <CardHeader className={cn("px-2 rounded-t-md", textColor)}>
         {typeof headerComponent === "string" ? (
           <CardTitle className="font-extrabold">{headerComponent}</CardTitle>
         ) : (
@@ -47,8 +44,7 @@ const CardUI: React.FC<CardUIProps> = ({
       </CardHeader>
       <CardContent
         className={cn(
-          "px-2 py-10",
-          bgColor,
+          "px-2 py-6",
           textColor,
           !footerComponent ? "rounded-b-md" : ""
         )}
@@ -56,7 +52,7 @@ const CardUI: React.FC<CardUIProps> = ({
         {children}
       </CardContent>
       {footerComponent ? (
-        <CardFooter className={cn("px-2 py-2 rounded-b-md", bgColor)}>
+        <CardFooter className={cn("px-2 py-2 rounded-b-md")}>
           {footerComponent}
         </CardFooter>
       ) : null}

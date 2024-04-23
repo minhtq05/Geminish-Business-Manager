@@ -1,6 +1,7 @@
 # This code sample uses the 'requests' library:
 # http://docs.python-requests.org
 import requests
+from src.api.config import JIRA_USER_EMAIL, JIRA_USER_PASSWORD, JIRA_PRJ_URL
 from requests.auth import HTTPBasicAuth
 import json
 from sample import tickets
@@ -17,9 +18,9 @@ def create_issue(payload, headers, auth):
   return response
 
 if __name__ == "__main__":
-    url = "https://geminish-business-manager.atlassian.net/rest/api/2/issue"
+    url = {JIRA_PRJ_URL}
 
-    auth = HTTPBasicAuth("geminishbm@gmail.com", "ATATT3xFfGF0mq9KHefJcCvFNvuHkt8nrw_L1Dnc3Gq34nlcXByE0wArtfpNbVfBcB22ZF1sxSd7KCTnTDtXHx1qvlhGetP6V3GMtTBPzWdLYud56fGd3HGg2CabE9g1B2jxJvdOI5SR1WRr4FFYFYqAnN85tndMaE7byfbHVlbivg7QwlRCowM=F36FEB38")
+    auth = HTTPBasicAuth(JIRA_USER_EMAIL, JIRA_USER_PASSWORD)
 
     headers = {
         "Accept": "application/json",

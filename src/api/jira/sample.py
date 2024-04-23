@@ -1,4 +1,3 @@
-
 tickets = {
     "fields": {
        "project":

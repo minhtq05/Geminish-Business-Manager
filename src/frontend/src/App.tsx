@@ -3,7 +3,7 @@ import DashboardLayout from "./components/layout/dashboardLayout";
 import FeedbackPage from "./pages/feedback";
 import Home from "./pages/home";
 import { EmailData } from "./data/constants";
-
+import SummaryPage from "./pages/summary";
 function App() {
   return (
     <BrowserRouter>
@@ -22,6 +22,14 @@ function App() {
           element={
             <DashboardLayout>
               <FeedbackPage feedbackData={EmailData} />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/summary"
+          element={
+            <DashboardLayout>
+              <SummaryPage />
             </DashboardLayout>
           }
         />

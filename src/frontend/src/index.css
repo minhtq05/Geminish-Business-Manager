@@ -95,3 +95,13 @@
 .flexcard {
   flex-basis: content;
 }
+aside{
+  display:none;
+}
+.test-border{
+  border: 2px solid red;
+}
+.linear-color-background{
+  background: linear-gradient(135deg, rgb(206, 159, 252) 10%, rgb(115, 103, 240) 100%);
+
+}

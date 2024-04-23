@@ -18,7 +18,7 @@ def create_issue(payload, headers, auth):
   return response
 
 if __name__ == "__main__":
-    url = {JIRA_PRJ_URL}
+    url = JIRA_PRJ_URL
 
     auth = HTTPBasicAuth(JIRA_USER_EMAIL, JIRA_USER_PASSWORD)
 

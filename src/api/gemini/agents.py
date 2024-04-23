@@ -1,22 +1,37 @@
-from api.gemini.config import GEMINI_API_KEY
+from src.api.config import GEMINI_API_KEY
 import google.generativeai as genai
+from src.api.types import Message, Product
 from rich import print, print_json
 from typing import List
 import time
 import random
 
 
-from .feedback_report import feedback_report_prompt
-from .response_generate import response_generate_prompt
-from .sample_feedback_emails import sample_feedback_emails_prompt
+from src.api.gemini.prompts import feedback_report_prompt, response_generate_prompt, sample_feedback_emails_prompt, filter_spam_prompt
 
 
-def Product(id: int, name: str, description: str):
-    return {
-        'id': id,
-        'name': name,
-        'description': description
-    }
+_safety_settings = [
+    {
+        "category": "HARM_CATEGORY_DANGEROUS",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_HARASSMENT",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_HATE_SPEECH",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+        "threshold": "BLOCK_NONE",
+    },
+]
 
 
 class GeminiCustomerFeedbackAgent():
@@ -25,10 +40,10 @@ class GeminiCustomerFeedbackAgent():
     This wrapper is customized as a business agent, helping businesses in managing their products.
     '''
 
-    def __init__(self, role: str = "Customer Feedback Manager", background: str = 'You have outstanding knowledge in understanding customers and product feedback.', company: str = 'Random Company', products: List = None, api: str = GEMINI_API_KEY, llm='gemini-1.0-pro-latest', language='English'):
+    def __init__(self, role: str = "Customer Feedback Manager", background: str = 'You have outstanding knowledge in understanding customers and product feedback.', business_name: str = 'Random Business', products: List = None, api: str = GEMINI_API_KEY, llm: str = 'gemini-1.0-pro-latest', language: str = 'English'):
         self.role = role
         self.background = background
-        self.company = company
+        self.business_name = business_name
         self.products = products
         self.language = language
         genai.configure(api_key=api)
@@ -46,6 +61,7 @@ class GeminiCustomerFeedbackAgent():
             llm, generation_config=self.analyze_config)
         self.llm_generator = genai.GenerativeModel(
             llm, generation_config=self.generate_config)
+        
         print('Gemini APIs initiated successfully.')
 
     def execute(self, llm_type: str = 'analyzer', tasks: str = 'Nothing', role: str = None, background: str = None):
@@ -75,29 +91,58 @@ Your task is to:
         if llm_type is None:
             return 'No role was provided.'
         elif llm_type == 'analyzer':
-            res = self.llm_analizer.generate_content(prompt)
+            res = self.llm_analizer.generate_content(prompt, safety_settings=_safety_settings)
         elif llm_type == 'generator':
-            res = self.llm_generator.generate_content(prompt)
+            res = self.llm_generator.generate_content(prompt, safety_settings=_safety_settings)
         else:
             return 'Unknown role.'
 
-        return str(res.text)
+        print(res)
+        return ""
 
-    def get_feedback_report(self, messages: List[dict] = None):
+        text = res.get('text', None)
+        if text is not None:
+            return str(text)
+        return res
+    
+
+    def get_feedback_report(self, messages: List[Message] = None):
         if messages is not None:
             prompt = feedback_report_prompt(self.products, messages)
             return self.execute('analyzer', prompt)
         else:
             return 'error: No messages were given.'
 
-    def generate_responses(self, messages: List[dict] = None):
+    def generate_responses(self, messages: List[Message] = None) -> str:
         if messages is not None:
             prompt = response_generate_prompt(self.products, messages)
-
             return self.execute('generator', prompt)
         else:
             return 'error: No messages were given.'
 
-    def generate_sample_feedbacks(self, num_feedbacks: int = 5):
-        prompt = sample_feedback_emails_prompt(self.products, self.company, 5)
+    def generate_sample_feedback_messages(self, num_feedbacks: int = 5) -> str:
+        """
+        Generate sample feedback messages and later prompt the users to reply to those messages and learn their styles and tones.
+        """
+        prompt = sample_feedback_emails_prompt(self.products, self.business, 5)
+
         return self.execute('generator', prompt)
+    
+    def filter_messages(self, messages: List[Message]) -> List[Message]:
+        """
+        Filter spam and unrelated messages from a list of messages
+        """
+        prompt = filter_spam_prompt(self.products, self.business, messages)
+        filter = self.execute('analyzer', prompt)
+
+        filter = filter.split(',')
+
+        filter = [True if x == "True" else False for x in filter]
+
+        messages = [m for i, m in enumerate(messages) if filter[i]]
+
+        return messages
+
+        
+        
+        

@@ -1,0 +1,9 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+FIREBASE_API_CREDENTIAL = os.getenv('FIREBASE_API_CREDENTIAL')
+FIREBASE_API_KEY = os.getenv('FIREBASE_API_KEY')
+FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID')
+GMAIL_API_CREDENTIAL = os.getenv('GMAIL_API_CREDENTIAL')
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')

@@ -1,182 +1,316 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
+from firebase_admin.firestore import Query
 from google.cloud.firestore_v1.base_query import FieldFilter
 from src.api.types import Message, User
-from typing import List, Union
-from datetime import datetime
+from src.api.config import FIREBASE_API_CREDENTIAL
+from typing import List, Union, Dict
+from datetime import datetime, timedelta
 from rich import print
+import sys
 
-#! Remember to get credentials from Firebase Console save it in the same directory as this file
-cred = credentials.Certificate("src/api/firestore/firestore-credential.json")
+
+"""
+To-do list:
+- Remove init_business and give each business a unique firestore databse reference
+
+"""
+
+cred = credentials.Certificate(f"src/api/firestore/{FIREBASE_API_CREDENTIAL}")
+app = firebase_admin.initialize_app(cred)
+db = firestore.client()
+
+
+def Config(users: str = "users", messages: str = "messages"): 
+    return {
+        "users": users,
+        "messages": messages,
+    }
+
+
+# all methods inside this module will only belong to the business you have initialized using init_business!
+# USE WITH CAUTION!
+
+
+#! Remember to get credentials from Firebase Console save it in the same directory as this file, put its name to an .env file, and name it as FIREBASE_CREDENTIAL.
+#! Also remember to remove your credential from 
 
 """
 Businesses can have existing databases with different names for their users and messages databases.
 """
-collections = {
-    "users": "users",
-    "messages": "messages",
-}
 
-app = firebase_admin.initialize_app(cred)
-db = firestore.client()
+class FirestoreDB():
+    def __init__(self, business_name: str, collection_config: Config = Config(), auto_init: bool = False) -> None:
+        self.business_name = business_name
+        self.collections = {
+            "users": "users",
+            "messages": "messages",
+        }
 
-business_db = None
-users_collection_ref = None
-emails_collection_ref = None
+        self._business_db = None
+        self._users_collection_ref = None
+        self._emails_collection_ref = None
+        self.is_initialized = False
+        self._auto_init = auto_init
 
+        
+        self.info = self.business_exists(business_name)
 
-def check_empty_query(query, error: Exception = None) -> bool:
-    if not query:
-        if error != None:
-            raise error
-        return True
+        if self.info is None:
+            if self._auto_init:
+                self.init_business(self.business_name)
+            print(f"Warning: No business found under the name '{business_name}'! Please initialize the business using the 'init_business' method first!")
+        else:
+            self.info = {
+                "id": self.info.id,
+                "name": business_name,
+                "created_on": self.info.to_dict().get("created_on", None),
+            }
+            self._business_id = self.info["id"]
+            self.is_initialized = True
 
-    return False
-
-
-def validate_field(field, field_name: str) -> None:
-    if field is None:
-        raise ValueError(f"Field {field_name} cannot be None")
-
-
-def check_db_references() -> None:
-    if business_db is None:
-        raise AttributeError("Attribute 'business_db' is not initialized correctly. Please run init_business(business_name) first to initialize the business's database you are trying to access first!")
-
-
-def init_business(business_name: str) -> bool:
-    global users_collection_ref, emails_collection_ref
-    """
-    Run this function first to initialize the business you are working on
-    """
-    query = (
-        db.collection("businesses")
-        .where(filter=FieldFilter("name", "==", business_name))
-        .limit(1)
-        .stream()
-    )
-
-    check_empty_query(query, ValueError(f"No business found under the name '{business_name}'!"))
-
-    query = next(query)
-
-    business_id = query.id
-    business_db = db.collection("businesses").document(business_id)
-    users_collection_ref = business_db.collection(collections["users"])
-    emails_collection_ref = business_db.collection(collections["messages"])
+        if self.is_initialized:
+            self.load_data()
 
 
-def add_emails(emails_list: List[Message]) -> None:
-    for email in emails_list:
-        emails_collection_ref.set({
-            'type': 'feedback',
-            'id': email["id"],
-            'sender': email["sender"],
-            'receiver': email["receiver"],
-            'send_date': email["send_date"],
-            'content_type': email["content_type"],
-            'labels': email["labels"],
-            'subject': email["subject"],
-            'body': email["body"]
+    def load_data(self):
+        if self.is_initialized:
+            self._business_db = db.collection("businesses").document(self._business_id)
+            self._users_collection_ref = self._business_db.collection(self.collections["users"])
+            self._emails_collection_ref = self._business_db.collection(self.collections["messages"])
+
+
+    def initialize_required(func):
+        def wrapper(self, *args, **kwargs):
+            if not self.is_initialized:
+                raise ValueError("Business is not initialized!")
+            return func(self, *args, **kwargs)
+        return wrapper
+        
+
+    def business_exists(self, business_name) -> None | Query: 
+        query = (
+            db.collection("businesses")
+            .where(filter=FieldFilter("name", "==", business_name))
+            .limit(1)
+            .stream()
+        )
+
+        if self.empty_query(query):
+            return None
+        else:
+            return next(query, None)
+
+
+    def init_business(self, business_name: str) -> None:
+        if self.is_initialized:
+            raise Warning("Business is already initialized!")
+            return
+
+        (_, data) = db.collection("businesses").add({
+            "name": business_name,
+            "created_on": datetime.now(),
         })
 
 
-def get_all_emails() -> List[Message]:
-    output = []
-    # create reference to email collection in db
-    emails = (emails_collection_ref.stream())
-    
-    for email in emails:
-        output.append(email.to_dict())
-    return output
+
+        data = data.get()
+
+        self.info = {
+            "id": data.id,
+            "name": business_name,
+            "created_on": data.to_dict().get("created_on", None),
+        }
+        self._business_id = self.info["id"]
+        self.is_initialized = True
+        self.load_data()
 
 
-def delete_email_by_id(query_id: str) -> None:
-    emails_to_delete = emails_collection_ref.where("id", "==", query_id).stream()
-    
-    for email in emails_to_delete:
-        email.reference.delete()
+    def empty_query(self, query, error: Exception = None) -> bool:
+        if query is None:
+            if error != None:
+                raise error
+            return True
+
+        return False
 
 
-def get_email_by_id(query_id: str) -> Union[Message, None]:
-    email_with_id = emails_collection_ref.where("id", "==", query_id).stream()
-    
-    if not email_with_id:
-        return None
-    return email_with_id[0]
+    def validate_field(self, field, field_name: str) -> None:
+        if field is None:
+            raise ValueError(f"Field {field_name} cannot be None")
         
 
-def update_email_by_id(query_id: str, new_email: Message) -> None:
-    emails_to_update = emails_collection_ref.where("id", "==", query_id).stream()
-    
-    for email in emails_to_update:
-        email.reference.update(new_email)
+    def get_gmail_token(self) -> Dict:
+        query = self._emails_collection_ref.document("token").get()
+        return query.to_dict()
     
 
-def get_email_by_date(query_date: datetime) -> List[Message]:
-    # can change to string 9
-    # asusume email's send date format as 04/12/2024 time abc abc
-    output = []
-    formatted_query_date = query_date.strftime("%m/%d/%Y")
-    emails_collection = emails_collection_ref.stream()
-    
-    for email in emails_collection:
-        doc_date = email.to_dict()["send_date"][:11]
-        if doc_date == formatted_query_date:
+    def save_gmail_token(self, token: Dict):
+        self._emails_collection_ref.document("token").set(token)
+        
+
+    @initialize_required
+    def add_messages(self, emails_list: List[Message]) -> None:
+        if len(emails_list) == 0:
+            return
+        new_message_ids = {}
+        for email in emails_list:
+            self._emails_collection_ref.document(email["id"]).set({
+                'type': 'feedback',
+                'id': email["id"],
+                'sender': email["sender"],
+                'receiver': email["receiver"],
+                'send_date': email["send_date"],
+                'content_type': email["content_type"],
+                'labels': email["labels"],
+                'subject': email["subject"],
+                'body': email["body"]
+            })
+            new_message_ids[email["id"]] = datetime.now()
+
+        self._emails_collection_ref.document("existing_message_ids").update(new_message_ids)
+        print(f"Add/Update new {len(emails_list)} message(s) to the database!")
+
+
+
+    def get_existing_message_ids(self) -> List[str]:
+        doc = self._emails_collection_ref.document("existing_message_ids").get()
+        if not doc.exists:
+            if self._auto_init:
+                self._emails_collection_ref.document("existing_message_ids").set({})
+                return {}
+            else:
+                raise RuntimeError("File 'existing_message_ids' does not exist!")
+        return doc.to_dict()
+
+
+    @initialize_required
+    def get_all_messages(self) -> List[Message]:
+        output = []
+        # create reference to email collection in db
+        emails = (self._emails_collection_ref.stream())
+        
+        for email in emails:
+            output.append(email.to_dict())
+        return output
+
+
+    @initialize_required
+    def delete_messages_by_id(self, query_id: str) -> None:
+        emails_to_delete = (
+            self._emails_collection_ref
+            .where("id", "==", query_id)
+            .limit(1)
+            .stream()
+        )
+
+        for email in emails_to_delete:
+            email.reference.delete()
+
+
+    @initialize_required
+    def get_message_by_id(self, query_id: str) -> Union[Message, None]:
+        email_with_id = (
+            self._emails_collection_ref
+            .where("id", "==", query_id)
+            .limit(1)
+            .stream()
+        )
+        
+        if not email_with_id:
+            return None
+        return email_with_id[0]
+            
+
+    @initialize_required
+    def update_message_by_id(self, query_id: str, new_email: Message) -> None:
+        emails_to_update = (
+            self._emails_collection_ref
+            .where("id", "==", query_id)
+            .limit(1)
+            .stream()
+        )
+        
+        for email in emails_to_update:
+            email.reference.update(new_email)
+        
+        
+    @initialize_required
+    def get_message_by_date(self, query_date: datetime) -> List[Message]:
+        # Query returning every messages sent during query_date, from 00:00:00 am to 11:59:59 pm
+        output = []
+        date_begin = query_date.timestamp()
+        date_end = (query_date + timedelta(days=1))
+        # formatted_query_date = query_date.strftime("%m/%d/%Y")
+        emails_collection = (
+            self._emails_collection_ref
+            .where(filter=FieldFilter("send_date", ">=", date_begin))
+            .where(filter=FieldFilter("send_date", "<", date_end))
+            .stream()
+        )
+        
+        for email in emails_collection:
             output.append(email)
-    return output
+        return output
 
 
-def get_email_by_range(start_query_date: datetime, end_query_date: datetime) -> List[Message]:
-    output = []
-    emails_collection = emails_collection_ref.stream()
-    start_date = start_query_date.date()
-    end_date = end_query_date.date()
-    
-    for email in emails_collection:
-        curr_date = datetime.strptime(email.to_dict()["send_date"], "%m/%d/%Y").date()
-        if start_date <= curr_date <= end_date:
+    @initialize_required
+    def get_email_by_range(self, start_query_date: datetime, end_query_date: datetime) -> List[Message]:
+        output = []
+        start_date = start_query_date.timestamp()
+        end_date = end_query_date.timestamp()
+
+        emails_collection = (
+            self._emails_collection_ref
+            .where(filter=FieldFilter("send_date", ">=", start_date))
+            .where(filter=FieldFilter("send_date", "<=", end_date))
+        )
+        
+        for email in emails_collection:
             output.append(email)
-    return output
+        return output
 
 
-def user_exists(email: str) -> bool | User:
-    validate_field(email, "email")
-    
-    query = (
-        users_collection_ref
-        .where(filter=FieldFilter("email", "==", email))
-        .limit(1)
-        .stream()
-    )
-    
-    return False if query is None else next(query)
+    @initialize_required
+    def user_exists(self, email: str):
+        self.validate_field(email, "email")
+        
+        query = (
+            self._users_collection_ref
+            .where(filter=FieldFilter("email", "==", email))
+            .limit(1)
+            .stream()
+        )
+        
+        return False if query is None else next(query)
 
 
-def register_new_user(email: str, password: str, is_admin: bool = False) -> bool | Exception:
-    validate_field(email, "email")
-    validate_field(password, "password")
+    @initialize_required
+    def register_new_user(self, email: str, password: str, is_admin: bool = False) -> bool | Exception:
+        self.validate_field(email, "email")
+        self.validate_field(password, "password")
 
-    if user_exists(email):
-        return ValueError(f"User with email {email} already exists!")
+        if self.user_exists(email):
+            return ValueError(f"User with email {email} already exists!")
 
-    users_collection_ref.add({
-        "email": email,
-        "password": password,
-        "created_on": datetime.now(),
-        "is_admin": is_admin,
-    })
+        self._users_collection_ref.add({
+            "email": email,
+            "password": password,
+            "created_on": datetime.now(),
+            "is_admin": is_admin,
+        })
 
 
-def authenticate_user(email: str, password: str) -> bool | Exception:
-    user = user_exists(email)
-    if not user:
-        return ValueError(f"No user found under email {email}")
+    @initialize_required
+    def authenticate_user(self, email: str, password: str) -> bool | Exception:
+        user = self.user_exists(email)
+        if not user:
+            return ValueError(f"No user found under email {email}")
 
-    if user.to_dict()["password"] != password: # Need to use hash later
-        return ValueError(f"Password is incorrect!")
+        if user.to_dict()["password"] != password: # Need to use hash later
+            return ValueError(f"Password is incorrect!")
 
-    return True    
+        return True    
 
 
 if __name__ == "__main__":

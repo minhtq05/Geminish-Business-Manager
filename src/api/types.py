@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import List
 
-def Message(id, sender, receiver, send_date, content_type, labels, subject, body):
+def Message(id: str, sender: str, receiver: str, send_date: datetime, content_type: str, labels: List[str], subject: str, body: str):
     return {
         'type': 'Gmail Message',
         'id': id,
@@ -13,10 +14,17 @@ def Message(id, sender, receiver, send_date, content_type, labels, subject, body
         'body': body
     }
 
-def User(email, password, is_admin, created_on=datetime.now()):
+def User(email: str, password: str, is_admin: bool, created_on: datetime=datetime.now()):
     return {
         "email": email,
         "password": password,
         "is_admin": is_admin,
         "created_on": created_on
+    }
+
+def Product(id: int, name: str, description: str):
+    return {
+        'id': id,
+        'name': name,
+        'description': description
     }

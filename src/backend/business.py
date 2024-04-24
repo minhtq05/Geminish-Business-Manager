@@ -1,6 +1,7 @@
 import random
 import os
 import json
+import re
 from src.api.gmail.service import GmailService
 from src.api.gemini.agents import GeminiCustomerFeedbackAgent
 from src.api.firestore.firestore import FirestoreDB
@@ -32,6 +33,9 @@ class BusinessAgent():
 
 
         self._gemini_agent = GeminiCustomerFeedbackAgent(business_name=business_name, products=products)
+
+        self.raw_messages =  self.get_raw_messages()
+        self.reports = self.get_reports(self.raw_messages)
         print(f"""Business '{business_name}' initialized!
 You can now use all the features of this business!""")
         
@@ -50,8 +54,13 @@ You can now use all the features of this business!""")
     
 
     def get_reports(self, messages: List[Message]):
-        return self._gemini_agent.get_feedback_report(messages)
-
+        def json_clean(text):
+            json_match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
+            if json_match:  
+                return json_match.group(1)
+            else:
+                return "Something went wrong when cleaning json!"
+        return json.loads(json_clean(self._gemini_agent.get_feedback_report(messages)))
 
 
     def existing_message_ids(self):

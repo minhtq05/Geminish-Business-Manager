@@ -1,19 +1,37 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.exceptions import HTTPException
 from firebase_admin import auth
 
 from src.backend.business import BusinessAgent
+from src.api.types import Product
 # from src.api.config import FIREBASE_API_KEY, FIREBASE_PROJECT_ID
 
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 from rich import print
-from pydantic import BaseModel
+from functools import wraps
+
 
 import uvicorn
 import pyrebase
 import json
+import asyncio
+import re
+
+"""
+
+
+
+A message should have the following format:
+{
+    "authorization": "token, the jwt string token of your account",
+    {"the rest of the content"}
+}
+
+
+
+"""
 
 firebaseConfig = {
     "apiKey": "AIzaSyC2mBWE2hEvW4A-ApWssxQofkvNplGSPWA",
@@ -31,11 +49,39 @@ app = FastAPI()
 businesses = []
 pb = pyrebase.initialize_app(firebaseConfig)
 
+products = [
+    Product(id=1234, name='Black Coffee',
+            description='This is the blackest coffee we have'),
+    Product(id=5678, name='White Coffee',
+            description='This is the whiest coffee we have'),
+]
+gemini_bm = BusinessAgent("Geminish BM", products=products)
 
-class Business(BaseModel):
-    id: int
-    business_name: str
-    created_on: datetime
+
+def login_required(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        headers = kwargs['request'].headers
+        if headers is None:
+            return {
+                "message": "Error! No header given!"
+            }
+
+        jwt = headers.get('authorization', None)
+        if jwt is None:
+            return {
+                "message": "Login required!"
+            }
+        user = auth.verify_id_token(jwt)
+        if user.get('uid', None) is None:
+            return {
+                "message": "Login required!"
+            }
+        return await func(*args, **kwargs)
+    return wrapper
+
+
+
 
 # Index enpoint
 @app.get("/")
@@ -83,19 +129,46 @@ async def ping(request: Request):
     return user["uid"]
 
 
-@app.post("/ping", include_in_schema=False)
-async def validate(request: Request):
-    headers = request.headers
 
-
-
-@app.get("/users")
-async def index():
+@app.get("/feedbacks")
+# @login_required
+async def feedbacks(request: Request):
+    response = gemini_bm.get_raw_messages()
     return {
-        "users": auth.list_users()
+        "messages": response,
     }
 
 
+@app.get("/reports")
+# @login_required
+async def reports():
+    def json_clean(text):
+        json_match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
+        if json_match:  
+            return json_match.group(1)
+        else:
+            return "Something went wrong when cleaning json!"
+        
+    messages = gemini_bm.get_raw_messages()
+    response = json.loads(json_clean(gemini_bm.get_reports(messages)))
+    return {
+        "reports": response
+    }
+
+
+@app.get("/reports/summarize")
+# @login_required
+async def reports_summarize():
+    messages = gemini_bm.get_raw_messages()
+    response = gemini_bm.get_reports_summarize(messages)
+    return {
+        "reports": response
+    }
+
+
+@app.get("/testanalyzer")
+async def testanalyzer():
+    return StreamingResponse(gemini_bm._gemini_agent.test_model_analyzer(), media_type='text/event-stream')
 
 def create_driver():
     uvicorn.run("src.backend.driver:app", host="0.0.0.0", port=5000, reload=True)

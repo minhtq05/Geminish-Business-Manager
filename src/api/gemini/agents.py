@@ -1,10 +1,12 @@
 from src.api.config import GEMINI_API_KEY
 import google.generativeai as genai
 from src.api.types import Message, Product
-from rich import print, print_json
+# from rich import print, print_json
 from typing import List
 import time
 import random
+import json
+import re
 
 
 from src.api.gemini.prompts import feedback_report_prompt, response_generate_prompt, sample_feedback_emails_prompt, filter_spam_prompt
@@ -40,7 +42,7 @@ class GeminiCustomerFeedbackAgent():
     This wrapper is customized as a business agent, helping businesses in managing their products.
     '''
 
-    def __init__(self, role: str = "Customer Feedback Manager", background: str = 'You have outstanding knowledge in understanding customers and product feedback.', business_name: str = 'Random Business', products: List = None, api: str = GEMINI_API_KEY, llm: str = 'gemini-1.0-pro-latest', language: str = 'English'):
+    def __init__(self, role: str = "Customer Feedback Manager", background: str = 'You have outstanding knowledge in understanding customers and product feedback.', business_name: str = 'Random Business', products: List = None, api: str = GEMINI_API_KEY, llm: str = 'gemini-1.5-pro-latest', language: str = 'English'):
         self.role = role
         self.background = background
         self.business_name = business_name
@@ -48,12 +50,12 @@ class GeminiCustomerFeedbackAgent():
         self.language = language
         genai.configure(api_key=api)
         self.analyze_config = genai.GenerationConfig(
-            temperature=0.0,
+            temperature=0.1,
             top_p=0.5,
             top_k=20,
         )
         self.generate_config = genai.GenerationConfig(
-            temperature=0.4,
+            temperature=0.7,
             top_p=0.9,
             top_k=20,
         )
@@ -63,6 +65,14 @@ class GeminiCustomerFeedbackAgent():
             llm, generation_config=self.generate_config)
         
         print('Gemini APIs initiated successfully.')
+
+
+    # def initialize_required(func):
+    #     def wrapper(self, *args, **kwargs):
+    #         if not self.is_initialized:
+    #             raise ValueError("Business is not initialized!")
+    #         return func(self, *args, **kwargs)
+    #     return wrapper
 
     def execute(self, llm_type: str = 'analyzer', tasks: str = 'Nothing', role: str = None, background: str = None):
         prompt = ''
@@ -78,13 +88,12 @@ You are a talented {role}
             '''
 
         prompt += f'''
-Your background is:
-                {background}
+{background}
             '''
 
         prompt += f'''
 Your task is to:
-            {tasks}
+{tasks}
         '''
 
         # print("Prompt:", prompt)
@@ -92,18 +101,16 @@ Your task is to:
             return 'No role was provided.'
         elif llm_type == 'analyzer':
             res = self.llm_analizer.generate_content(prompt, safety_settings=_safety_settings)
+            if hasattr(res, 'text'):
+                return res.text
+                # return json_clean(res.text)
         elif llm_type == 'generator':
             res = self.llm_generator.generate_content(prompt, safety_settings=_safety_settings)
+            return res.text
         else:
-            return 'Unknown role.'
-
-        print(res)
-        return ""
-
-        text = res.get('text', None)
-        if text is not None:
-            return str(text)
-        return res
+            return 'Unknown role.'            
+        
+        return "Something went wrong!"
     
 
     def get_feedback_report(self, messages: List[Message] = None):
@@ -124,7 +131,7 @@ Your task is to:
         """
         Generate sample feedback messages and later prompt the users to reply to those messages and learn their styles and tones.
         """
-        prompt = sample_feedback_emails_prompt(self.products, self.business, 5)
+        prompt = sample_feedback_emails_prompt(self.products, self.business_name, 5)
 
         return self.execute('generator', prompt)
     
@@ -132,7 +139,7 @@ Your task is to:
         """
         Filter spam and unrelated messages from a list of messages
         """
-        prompt = filter_spam_prompt(self.products, self.business, messages)
+        prompt = filter_spam_prompt(self.products, self.business_name, messages)
         filter = self.execute('analyzer', prompt)
 
         filter = filter.split(',')
@@ -143,6 +150,13 @@ Your task is to:
 
         return messages
 
+    async def test_model_analyzer(self):
+        response = await self.llm_analizer.generate_content_async('''
+Give me a list of 10 breakfasts that are healthy with JSON schema separated by commas:
+{}"name":"string, name of the meal", "description": "string, a short description of the meal", "calories": "int, number of calories in the meal", "serving_size": "float, size of the serving in grams"}
+''', safety_settings=_safety_settings, stream=True)
+        async for chunk in response:
+            yield chunk.text
         
         
         

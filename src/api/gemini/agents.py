@@ -42,7 +42,13 @@ class GeminiCustomerFeedbackAgent():
     This wrapper is customized as a business agent, helping businesses in managing their products.
     '''
 
-    def __init__(self, role: str = "Customer Feedback Manager", background: str = 'You have outstanding knowledge in understanding customers and product feedback.', business_name: str = 'Random Business', products: List = None, api: str = GEMINI_API_KEY, llm: str = 'gemini-1.5-pro-latest', language: str = 'English'):
+    def __init__(self, role: str = "Customer Feedback Manager",
+                 background: str = 'You have outstanding knowledge in understanding customers and product feedback.',
+                 business_name: str = 'Random Business',
+                 products: List = None,
+                 api: str = GEMINI_API_KEY,
+                 llm: str = 'gemini-1.5-pro-latest',
+                 language: str = 'English'):
         self.role = role
         self.background = background
         self.business_name = business_name
@@ -139,15 +145,17 @@ Your task is to:
         """
         Filter spam and unrelated messages from a list of messages
         """
+        unempty_message = []
+        for i, message in enumerate(messages):
+            if message.get("body", "") == "":
+                continue
+            unempty_message.append(message)
+        messages = unempty_message
         prompt = filter_spam_prompt(self.products, self.business_name, messages)
         filter = self.execute('analyzer', prompt)
-
-        filter = filter.split(',')
-
+        filter = filter.strip().split(',')
         filter = [True if x == "True" else False for x in filter]
-
         messages = [m for i, m in enumerate(messages) if filter[i]]
-
         return messages
 
     async def test_model_analyzer(self):

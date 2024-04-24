@@ -1,6 +1,5 @@
 from src.api.types import Message, Product
 from typing import List
-import json
 
 
 def messages_format(messages: List[Message]) -> str:
@@ -12,51 +11,81 @@ def sample_messages_format(messages: List[Message]) -> str:
 
 
 def feedback_report_prompt(ref_products: List[Product], messages: List[Message]) -> str:
-    return '''Analyse users' feedback emails, generate a list of reports for feedback that matches the list of products with descriptions using this JSON schema:
-[
-    List of the reports for each feedback email with JSON schema as below:
-    {
-        "sender": "string, email of the sender",
-        "products": [
-            List of the products that the user mentioned with JSON schema as below:
-            {
-                "id": "string, id of the product 1",
-                "name": "string, Name of product 1",
-                "status": "string, status of the feedback (mostly positive, somewhat positive, neutral, somewhat negative, and mostly negative)",
-                "summary": [
-                    List of the exact feedback sentences with format as below:
-                    "string, feedback sentence 1",
-                    "string, feedback sentence 2",
-                    "string, feedback sentence 3",
-                    "string, feedback sentence 4"
-                ]
-            }
-        ]
-    }
-]
-    
-If a message doesn't relate to any of the products and descriptions, return an empty products list. ''' + f'''
-Here is the list of products:
+    return '''Analyse users' feedback emails and generate reports based on the products each user mentioned from the below list of products with their description.
+The reports must be formated in JSON. The report must not have /n or anything like that 
+Each report should have the following attributes: sender - the email address of the sender, products - a list of objects representing products that the user mentioned. For each object inside the products is a dictionary with 4 attributes: the ID of the product, the name of the product, the status of the feedback for this product (mostly positive, somewhat positive, neutral, somewhat negative, and mostly negative), and the short summary of the feedback about this product written in third person.
+If the message is not related to any of the products and their description, it should have an empty products list.
+Here is a sample report, the report must look like this:
+{
+    "reports": [
+        {
+            "sender": "emailofthesender1@gmail.com",
+            "products": [
+                {
+                    "id": 1234,
+                    "name": "Product 1",
+                    "status": "mostly positive",
+                    "summary": "Product is great!"
+                },
+                {
+                    "id": 5678,
+                    "name": "Product 2",
+                    "status": "mostly negative",
+                    "summary": "Have a lot of bugs. The color is too bright and has no dark mode."
+                },
+                {
+                    "id": 1357,
+                    "name": "Product 3",
+                    "status": "neutral",
+                    "summary": "The documentation is hard to read. However, still readable and can be improved."
+                }
+            ]
+        },
+        {
+            "sender": "emailofthesender2@gmail.com",
+            "products": [
+                {
+                    "id": 5678,
+                    "name": "Product 3",
+                    "status": "somewhatnegative",
+                    "summary": "Doesn't seem working after booted up"
+                },
+                {
+                    "id": 1357,
+                    "name": "Product 7",
+                    "status": "somewhat negative",
+                    "summary": "Didn't run after hours of booting up"
+                }
+            ]
+        }
+    ]
+}
+''' + f'''
+Here is a list of products:
 {ref_products}
-Here is the list of users' feedback:
-{messages_format(messages)}'''
+And here are the users' feedback:
+{messages_format(messages)}
+'''
 
 
 def filter_spam_prompt(ref_products: List[Product], ref_company: str, messages: List[Message]) -> str:
-    return f'''Read users' feedback emails, generate a list of booleans (True or False) indicating if each message is a legit feedback or not based on the below list of products with their descriptions.
-You must strictly response with a string of boolean values separated by commas with no leading spaces.
-For example, if there are five messages, the first and the third one are spams or unrelated, the second, the fourth, and the fifth are legit feedback emails from an user, your response should be like this:
+    return f'''Analyze messages from random people if they are feedback or they are spam/ unrelated messages
+A legit feedback should include company name: {ref_company} and products: {ref_products} 
+Feedback that does not include {ref_company} have to be labeled False
+Feedback that does not include one of the product in {ref_products} have to be labeled False
+All email from Amazon, Ebay, Temu have to be labeled False
+You should return True if a message is a legit feedback and False if it is a spam email or an unrelated message.'
+Your response should strictly be a string of boolean values (True or False) separated by commas with no leading spaces.
+Your number of boolean values must be equal to the number of messages
+For example, your response should be like this:
 
 False,True,False,True,True
 
 Here is the list of products of company '{ref_company}' and their detailed descriptions:
 {ref_products}
 Here are the messages:
-
 {messages_format(messages)}
-
-End of messages.
-I have {len(messages)}, you must response with exactly {len(messages)} boolean values.'''
+Here is the number of messages: {len(messages)}'''
 
 
 def sample_feedback_emails_prompt(ref_products: List[Product], ref_company_name: str = None, num_feedbacks: int = 5) -> str:
@@ -101,31 +130,3 @@ Here is a list of products:
 {ref_products}
 And here are the users' feedback:
 {sample_messages_format(messages)}'''
-
-
-
-
-
-# Each report stricly have 5 attributes: sender: sender's email address, products: list of products user mentioned. Each products is a dictionary with 4 attributes: products' ID, product's name, status of feedback for this product (mostly positive, somewhat positive, neutral, somewhat negative, and mostly negative), and a list of feedback sentences summarized.
-
-#  "sender": "emailofthesender1@gmail.com",
-#         "products": [
-#             {
-#                 "id": "id of the product",
-#                 "name": "Name of product 1",
-#                 "status": "status of the feedback",
-#                 "summary": []
-#             },
-#             {
-#                 "id": "idoftheproduct2",
-#                 "name": "Name of product 2",
-#                 "status": "status of the feedback",
-#                 "summary": [
-#                     "feedback sentence 1",
-#                     "feedback sentence 2",
-#                     "feedback sentence 3",
-#                     "feedback sentence 4"
-#                 ]
-#             },
-#         ]
-#     }

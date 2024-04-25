@@ -1,13 +1,13 @@
-import random
-import os
 import json
 import re
 from src.api.gmail.service import GmailService
 from src.api.gemini.agents import GeminiCustomerFeedbackAgent
 from src.api.firestore.firestore import FirestoreDB
-from rich import print, inspect
+from rich import inspect
 from typing import List
 from src.api.types import Message, Product
+from src.format import json_clean
+
 # This is a test function only.
 # Remember to change the random module with an id generator
 
@@ -34,8 +34,7 @@ class BusinessAgent():
 
         self._gemini_agent = GeminiCustomerFeedbackAgent(business_name=business_name, products=products)
 
-        self.raw_messages =  self.get_raw_messages()
-        self.reports = self.get_reports(self.raw_messages)
+
         print(f"""Business '{business_name}' initialized!
 You can now use all the features of this business!""")
         
@@ -50,16 +49,19 @@ You can now use all the features of this business!""")
 
 
     def get_raw_messages(self) -> List[Message]:
-        return self._gmail_service.get_all_messages()
+        return self._firestoredb.get_all_messages()
     
 
-    def get_reports(self, messages: List[Message]):
+    def get_reports(self):
         def json_clean(text):
             json_match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
             if json_match:  
                 return json_match.group(1)
             else:
                 return "Something went wrong when cleaning json!"
+        messages = self._gmail_service.get_all_messages()
+        messages = self._gemini_agent.filter_messages(messages)
+        json.loads(json_clean(self._gemini_agent.get_feedback_report(messages)))
         return json.loads(json_clean(self._gemini_agent.get_feedback_report(messages)))
 
 
@@ -84,3 +86,22 @@ You can now use all the features of this business!""")
 
     def get_reports_summarize(self, reports: List[dict]):
         pass
+    def get_improvements_options(self):
+        report = self.get_reports()
+        print(report)
+        for i in range(10):
+            try:
+                options = self._gemini_agent.create_improvements_option(report)
+                options = re.sub("\'", "\"", options)
+                options = json_clean(options)
+                options = json.loads(options)
+                break
+            except ValueError as JSON:
+                print(JSON)
+                print(i)
+                continue
+            except:
+                print('Other error')
+                print(i)
+                continue
+        return options

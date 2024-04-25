@@ -1,15 +1,10 @@
 from src.api.config import GEMINI_API_KEY
 import google.generativeai as genai
-from src.api.types import Message, Product
+from src.api.types import Message
 # from rich import print, print_json
 from typing import List
-import time
-import random
-import json
-import re
 
-
-from src.api.gemini.prompts import feedback_report_prompt, response_generate_prompt, sample_feedback_emails_prompt, filter_spam_prompt
+from src.api.gemini.prompts import feedback_report_prompt, response_generate_prompt, sample_feedback_emails_prompt, filter_spam_prompt, improvements_option
 
 
 _safety_settings = [
@@ -146,6 +141,9 @@ Your task is to:
         Filter spam and unrelated messages from a list of messages
         """
         unempty_message = []
+        for message in messages:
+            del message["type"], message['id'], message['send_date'], message['content_type'], message['labels']
+
         for i, message in enumerate(messages):
             if message.get("body", "") == "":
                 continue
@@ -157,6 +155,12 @@ Your task is to:
         filter = [True if x == "True" else False for x in filter]
         messages = [m for i, m in enumerate(messages) if filter[i]]
         return messages
+
+    def create_improvements_option(self, report = None):
+        prompt = improvements_option(self.products, self.business_name, report)
+        options = self.execute('generator', prompt)
+        print(prompt)
+        return options
 
     async def test_model_analyzer(self):
         response = await self.llm_analizer.generate_content_async('''

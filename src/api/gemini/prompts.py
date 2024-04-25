@@ -1,14 +1,6 @@
 from src.api.types import Message, Product
 from typing import List
-
-
-def messages_format(messages: List[Message]) -> str:
-    return '\n'.join([f'Sender: {msg.get("sender", {}).get('email', "Anonymous")}\n{msg.get("body", "")}' for msg in messages if msg.get("body", "") != ""])
-
-
-def sample_messages_format(messages: List[Message]) -> str:
-    return '\n'.join([f'Sender: {msg.get("sender", {}).get('name', " Our Precious Customer")}\n{msg.get("body", "")}' for msg in messages if msg.get("body", "") != ""])
-
+from src.format import sample_messages_format, messages_format
 
 def feedback_report_prompt(ref_products: List[Product], messages: List[Message]) -> str:
     return '''Analyse users' feedback emails and generate reports based on the products each user mentioned from the below list of products with their description.
@@ -69,23 +61,16 @@ And here are the users' feedback:
 
 
 def filter_spam_prompt(ref_products: List[Product], ref_company: str, messages: List[Message]) -> str:
-    return f'''Analyze messages from random people if they are feedback or they are spam/ unrelated messages
-A legit feedback should include company name: {ref_company} and products: {ref_products} 
-Feedback that does not include {ref_company} have to be labeled False
-Feedback that does not include one of the product in {ref_products} have to be labeled False
-All email from Amazon, Ebay, Temu have to be labeled False
-You should return True if a message is a legit feedback and False if it is a spam email or an unrelated message.'
-Your response should strictly be a string of boolean values (True or False) separated by commas with no leading spaces.
-Your number of boolean values must be equal to the number of messages
-For example, your response should be like this:
+    return f'''True if a message is a legit feedback and False if it is a spam email or an unrelated message.
+A feedback body or subject must include company name: {ref_company} and products: {ref_products} 
+Strictly be a string of boolean values (True or False) separated by commas with no leading spaces.
+Number of boolean values must be equal to {len(messages)}
+Here is a response example:
 
 False,True,False,True,True
 
-Here is the list of products of company '{ref_company}' and their detailed descriptions:
-{ref_products}
 Here are the messages:
-{messages_format(messages)}
-Here is the number of messages: {len(messages)}'''
+{messages_format(messages)}'''
 
 
 def sample_feedback_emails_prompt(ref_products: List[Product], ref_company_name: str = None, num_feedbacks: int = 5) -> str:
@@ -114,7 +99,7 @@ Here are the products:
 def response_generate_prompt(ref_products: List[Product], messages: List[Message]) -> str:
     return '''Generate responses to the users' feedback emails based on the products each user mentioned from the below list of products with their description.
 Use friendly tone and be as concise as possible.
-Each response should be formated in JSON and has 3 attributes: receiver - the sender of the feedback we received earlier, subject - the subject of the response, and body - the body of the feedback.
+Each response should be formatted in JSON and has 3 attributes: receiver - the sender of the feedback we received earlier, subject - the subject of the response, and body - the body of the feedback.
 Here is a sample response:
 {
     "responses": [
@@ -130,3 +115,17 @@ Here is a list of products:
 {ref_products}
 And here are the users' feedback:
 {sample_messages_format(messages)}'''
+
+def improvements_option(ref_products: List[Product], ref_company_name: str = None,  report: dict = None) -> str:
+    return f'''Generate a list of suggestions for a list of products for company {ref_company_name} based on a feedback report.
+The output must strictly be in JSON schema:''' + '''
+{
+    List all of the products here.
+    For example:
+    "name of product": "list, a [] list of improvements separated by commas. Each improvement is a list of two strings: ["summary, string, the summary of the improvement", "description, string, the description of the improvement"].
+}''' + f'''
+Here is a list of products:
+{ref_products}
+Here is the feedback report:
+{report}
+'''

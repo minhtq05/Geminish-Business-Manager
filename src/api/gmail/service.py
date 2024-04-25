@@ -1,7 +1,5 @@
-import os.path
 import base64
 import re
-import json
 from typing import Dict
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -16,13 +14,11 @@ SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
 # This gmail api is owned by this product, not the business using it!
 # It is used for using and billing the Gmail API!
-GMAIL_API_CREDENTIAL = GMAIL_API_CREDENTIAL
-
 
 
 # The main Gmail API service for loading messages, sending emails, and many other functionalities.
 class GmailService():
-    def __init__(self, business_name: str, gmail_token: Dict) -> None | Exception:
+    def __init__(self, business_name: str, gmail_token: Dict = None) -> None | Exception:
         self._business_name = business_name
         self.gmail_token = gmail_token # This one is a credential dict and need to be kept as a secret!
         self._service, self.gmail_token = self._gmail_service()
@@ -133,7 +129,7 @@ class GmailService():
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     #   "credentials.json", SCOPES
-                    f"src/api/gmail/{GMAIL_API_CREDENTIAL}", SCOPES
+                    f"/Users/admin/PycharmProjects/Geminish-Business-Manager/src/api/gmail/client_secret_561924726081-64am81sai7j38a66hmvjepqtohvf86sa.apps.googleusercontent.com.json", SCOPES
                 )
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run

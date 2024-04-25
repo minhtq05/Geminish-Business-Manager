@@ -28,9 +28,21 @@ def Product(id: int, name: str, description: str):
         'name': name,
         'description': description
     }
-
+def JiraTicket(key, summary, description):
+    return {
+        "fields": {
+            "project":
+                {
+                    "key": key
+                },
+            "summary": summary,
+            "description": description,
+            "issuetype": {
+                "name": "Task"
+            }
+        }
+    }
 def ProductReport(id: str, name: str, status: Literal["mostly positive", "somewhat positive", "neutral",  "somewhat negative", "mostly negative"], summary: List[str]):
-
     pass
 
 def Report(sender: str, products: List[dict]):

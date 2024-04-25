@@ -1,53 +1,34 @@
-import base64
-from src.api.gmail.service import GmailService
-from src.api.gemini.agents import Product, GeminiCustomerFeedbackAgent
-from rich import print, print_json
-from src.api.gemini.prompts import filter_spam_prompt
 import time
-from src.backend.business import BusinessAgent
-
-def main():
-    start = time.perf_counter()
-
-    #agent = BusinessAgent(
-    #    business_name = 'The Coffee House',
-    #    products = ['Black Coffee', 'White Coffee']
-    #)
+from rich import print
+from src.api.gmail.service import GmailService
+from src.api.gemini.agents import GeminiCustomerFeedbackAgent
+from src.api.firestore.firestore import FirestoreDB
+'''
+Test flow: all messages -> filter messages -> print filtered messages
+'''
+def main(business_name, background, products):
 
     filter_agent = GeminiCustomerFeedbackAgent(
-        business_name='The Coffee House',
-        background='You are a professional at filtering messages',
-        products=['Black Coffee', 'White Coffee']
+        business_name=business_name,
+        background=background,
+        products=products
     )
-
-    gmail = GmailService(business_name = 'The Coffee House')
+    token = FirestoreDB()
+    gmail = GmailService(business_name, token.get_gmail_token())
     messages = gmail.get_all_messages()
-
-    i = 0
-    for message in messages:
-        messages[i]['body'] = message['body'][:200:]
-        i += 1
-
-
     print(messages)
-    promt = filter_spam_prompt(['Black Coffee', 'White Coffee'], 'The Coffee House', messages)
-    print(promt)
-    end = time.perf_counter()
-
-    print(f'Finished in {end - start} seconds.')
-
 
     print('Lenght',len(messages))
     filtered_messages = filter_agent.filter_messages(messages)
     print(filtered_messages)
 
-    #res = agent.get_reports(filtered_messages)
+if __name__ == "__main__":
+    start = time.perf_counter()
+
+    business_name = 'The Coffee House',
+    background = 'You are a professional at filtering messages',
+    products = ['Black Coffee', 'White Coffee']
+    main(business_name, background, products)
 
     end = time.perf_counter()
-
-    #print(res)
     print(f'Finished in {end - start} seconds.')
-
-
-if __name__ == "__main__":
-    main()

@@ -4,11 +4,11 @@ import json
 
 
 def messages_format(messages: List[Message]) -> str:
-    return '\n'.join([f'Sender: {msg.get("sender", {}).get('email', "Anonymous")}\n{msg.get("body", "")}' for msg in messages if msg.get("body", "") != ""])
+    return '\n'.join([f'Sender: {msg.get("sender", {}).get("email", "Anonymous")}\n{msg.get("body", "")}' for msg in messages if msg.get("body", "") != ""])
 
 
 def sample_messages_format(messages: List[Message]) -> str:
-    return '\n'.join([f'Sender: {msg.get("sender", {}).get('name', " Our Precious Customer")}\n{msg.get("body", "")}' for msg in messages if msg.get("body", "") != ""])
+    return '\n'.join([f'Sender: {msg.get("sender", {}).get("name", " Our Precious Customer")}\n{msg.get("body", "")}' for msg in messages if msg.get("body", "") != ""])
 
 
 def feedback_report_prompt(ref_products: List[Product], messages: List[Message]) -> str:

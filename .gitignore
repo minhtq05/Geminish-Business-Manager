@@ -35,6 +35,7 @@ yarn-error.log*
 /include
 /lib
 pyvenv.cfg
+venv/
 
 # Credentials
 *.json

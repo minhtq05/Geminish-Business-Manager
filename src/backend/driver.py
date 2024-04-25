@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException
 from firebase_admin import auth
 
@@ -46,6 +47,17 @@ firebaseConfig = {
 
 
 app = FastAPI()
+origins = [
+    "http://localhost:5173",  # Replace with the origin of your frontend application
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 businesses = []
 pb = pyrebase.initialize_app(firebaseConfig)
 

@@ -2,6 +2,7 @@ import os.path
 import base64
 import re
 import json
+from datetime import datetime
 from typing import Dict
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -43,6 +44,8 @@ class GmailService():
 
 
     def get_message_by_id(self, message_id):
+        date_format_GMT = "%a, %d %b %Y %H:%M:%S %Z"
+        date_format_UTC = "%a, %d %b %Y %H:%M:%S %z"
         # Get the content of a single message searched using the given id.
         message = self.get_raw_message_by_id(message_id)
 
@@ -73,7 +76,13 @@ class GmailService():
                         receiver = {'name': receiver[0].strip(
                             '\"'), 'email': receiver[1][:-1]}
                 case 'Date':
-                    send_date = item.get('value', '')
+                    send_date = item.get('value', None)
+                    if send_date != '':
+                        try:
+                            send_date = datetime.strptime(send_date, date_format_GMT)
+                        except:
+                            send_date = datetime.strptime(send_date, date_format_UTC)
+                        send_date = send_date.timestamp()
                 case 'Content-Type':
                     content_type = item.get('value', '')
                 case 'Subject':
@@ -90,13 +99,16 @@ class GmailService():
                 if (part.get('mimeType', '') == 'text/plain'):
                     body = part.get('body', {}).get('data', '')
                     break
-
-        body = base64.urlsafe_b64decode(body).decode('utf-8')
-        # body = re.sub('\u200c', '', body)
-        body = re.sub('\r\n\r\n','\n', body)
-        body = re.sub('\r\n', ' ', body)
-        # body = body.split('\r\n')
-        # body = re.sub('<.*?>', '', '\n'.join(body))
+        
+        if len(body) < 1:
+            body = "This message has no content!"
+        else:
+            body = base64.urlsafe_b64decode(body).decode('utf-8')
+            # body = re.sub('\u200c', '', body)
+            body = re.sub('\r\n\r\n','\n', body)
+            body = re.sub('\r\n', ' ', body)
+            # body = body.split('\r\n')
+            # body = re.sub('<.*?>', '', '\n'.join(body))
 
         return Message(message_id, sender, receiver, send_date, content_type, labels, subject, body)
 

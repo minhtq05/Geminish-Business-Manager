@@ -1,14 +1,7 @@
 from src.api.types import Message, Product
 from typing import List
+from src.api.gemini.formats import messages_format, sample_messages_format, products_format
 import json
-
-
-def messages_format(messages: List[Message]) -> str:
-    return '\n'.join([f'Sender: {msg.get("sender", {}).get('email', "Anonymous")}\n{msg.get("body", "")}' for msg in messages if msg.get("body", "") != ""])
-
-
-def sample_messages_format(messages: List[Message]) -> str:
-    return '\n'.join([f'Sender: {msg.get("sender", {}).get('name', " Our Precious Customer")}\n{msg.get("body", "")}' for msg in messages if msg.get("body", "") != ""])
 
 
 def feedback_report_prompt(ref_products: List[Product], messages: List[Message]) -> str:
@@ -20,15 +13,12 @@ def feedback_report_prompt(ref_products: List[Product], messages: List[Message])
         "products": [
             List of the products that the user mentioned with JSON schema as below:
             {
-                "id": "string, id of the product 1",
-                "name": "string, Name of product 1",
+                "id": "string, id of the product",
+                "name": "string, Name of product",
                 "status": "string, status of the feedback (mostly positive, somewhat positive, neutral, somewhat negative, and mostly negative)",
                 "summary": [
                     List of the exact feedback sentences with format as below:
-                    "string, feedback sentence 1",
-                    "string, feedback sentence 2",
-                    "string, feedback sentence 3",
-                    "string, feedback sentence 4"
+                    "string, feedback sentence",
                 ]
             }
         ]
@@ -37,17 +27,16 @@ def feedback_report_prompt(ref_products: List[Product], messages: List[Message])
     
 If a message doesn't relate to any of the products and descriptions, return an empty products list. ''' + f'''
 Here is the list of products:
-{ref_products}
+{products_format(ref_products)}
 Here is the list of users' feedback:
-{messages_format(messages)}'''
+{messages_format(messages)}
+You must not change the order of the messages
+'''
 
 
 def filter_spam_prompt(ref_products: List[Product], ref_company: str, messages: List[Message]) -> str:
-    return f'''Read users' feedback emails, generate a list of booleans (True or False) indicating if each message is a legit feedback or not based on the below list of products with their descriptions.
+    return f'''Analyze emails, generate a list of booleans (True,False) indicating if each email is a legit feedback or not related to the below list of products including their descriptions.
 You must strictly response with a string of boolean values separated by commas with no leading spaces.
-For example, if there are five messages, the first and the third one are spams or unrelated, the second, the fourth, and the fifth are legit feedback emails from an user, your response should be like this:
-
-False,True,False,True,True
 
 Here is the list of products of company '{ref_company}' and their detailed descriptions:
 {ref_products}

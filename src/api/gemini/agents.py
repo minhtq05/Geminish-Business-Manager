@@ -156,10 +156,9 @@ Your task is to:
         messages = [m for i, m in enumerate(messages) if filter[i]]
         return messages
 
-    def create_improvements_option(self, report = None):
+    def create_improvements_option(self, report = None) -> str:
         prompt = improvements_option(self.products, self.business_name, report)
         options = self.execute('generator', prompt)
-        print(prompt)
         return options
 
     async def test_model_analyzer(self):

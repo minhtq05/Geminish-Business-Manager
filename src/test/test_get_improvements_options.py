@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     business_name = 'The Coffee House',
     products = ['Black Coffee', 'White Coffee']
-    main(business_name,products)
-
+    options = main(business_name,products)
+    print(options)
     end = time.perf_counter()
     print(f'Finished in {end - start} seconds.')

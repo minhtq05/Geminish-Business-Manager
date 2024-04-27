@@ -11,7 +11,7 @@ from datetime import datetime
 import sys
 from rich import print, inspect
 from src.backend import driver
-from src.backend import sample
+# from src.backend import driver
 from rich import print, print_json
 
 def watch(func):
@@ -26,7 +26,6 @@ def watch(func):
 
 @watch
 def main():
-    # sample.main()
     driver.create_driver()
 
 

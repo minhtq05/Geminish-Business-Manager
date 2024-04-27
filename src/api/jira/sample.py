@@ -1,4 +1,4 @@
-tickets = {
+ticket1 = {
     "fields": {
        "project":
        {

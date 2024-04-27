@@ -28,14 +28,14 @@ def Product(id: int, name: str, description: str):
         'name': name,
         'description': description
     }
-def JiraTicket(key, summary, description):
+def JiraTicket(key: str, product: str, summary: str, description: str):
     return {
         "fields": {
             "project":
                 {
                     "key": key
                 },
-            "summary": summary,
+            "summary": product+': '+summary,
             "description": description,
             "issuetype": {
                 "name": "Task"

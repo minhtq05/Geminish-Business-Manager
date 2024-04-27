@@ -42,20 +42,11 @@ Other than that, you don't have to worry about anything else.
 
 
 
-firebaseConfig = {
-    "apiKey": "AIzaSyC2mBWE2hEvW4A-ApWssxQofkvNplGSPWA",
-    "authDomain": "geminish-business-manage-cd958.firebaseapp.com",
-    "projectId": "geminish-business-manage-cd958",
-    "storageBucket": "geminish-business-manage-cd958.appspot.com",
-    "messagingSenderId": "877330635552",
-    "appId": "1:877330635552:web:374ccdf3783e02ded11545",
-    "measurementId": "G-CJJXJ0NWF8",
-    "databaseURL": ""
-}
 
 
 app = FastAPI() # our main FastAPI application
 businesses = [] # a list of all the businesses
+# firebaseConfig = {} # Replace with real firebase config later
 # pb = pyrebase.initialize_app(firebaseConfig)
 
 

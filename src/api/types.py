@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Literal
 
 def Message(id: str, sender: str, receiver: str, send_date: datetime, content_type: str, labels: List[str], subject: str, body: str):
     return {
@@ -28,3 +28,10 @@ def Product(id: int, name: str, description: str):
         'name': name,
         'description': description
     }
+
+def ProductReport(id: str, name: str, status: Literal["mostly positive", "somewhat positive", "neutral",  "somewhat negative", "mostly negative"], summary: List[str]):
+
+    pass
+
+def Report(sender: str, products: List[dict]):
+    pass

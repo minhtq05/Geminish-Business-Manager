@@ -17,8 +17,6 @@ SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
 # This gmail api is owned by this product, not the business using it!
 # It is used for using and billing the Gmail API!
-GMAIL_API_CREDENTIAL = GMAIL_API_CREDENTIAL
-
 
 
 # The main Gmail API service for loading messages, sending emails, and many other functionalities.

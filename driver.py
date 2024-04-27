@@ -33,7 +33,7 @@ The main structure of the driver is as follows:
         * /index: the index route, which will be used to test if the server is up and running
         * /feedbacks: the route for getting all the feedbacks from the customers
         * /reports: the route for getting all the reports after analyzing the feedbacks
-        * /reports/summarize: the route for summarizing the reports into a 
+        * /reports/summarize: the route for summarizing the reports into a total summary of all feedbacks
 
         
 Other than that, you don't have to worry about anything else.

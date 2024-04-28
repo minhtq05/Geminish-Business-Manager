@@ -19,8 +19,6 @@ To get started with Agilizer, please follow these steps:
 4. Embrace the Power of Automation: Leverage the platform's workflow automation capabilities to streamline your operations and boost efficiency.
 5. Leverage Data-Driven Insights: Leverage the advanced analytics tools to gain valuable insights and make informed decisions.
 
-<<<<<<< Updated upstream
-=======
 ## Usage for Developers
 Here are things you need to know to start working with Agilizer as a developer:
 
@@ -125,7 +123,6 @@ Note: Here are some key elements that you need to know about this structure:
 
 
 
->>>>>>> Stashed changes
 Support and Feedback
 * We are committed to providing our users with exceptional support and continuously improving Agilizer. If you have any questions, suggestions, or feedback, please don't hesitate to reach out to our dedicated support team at placeholder@gmail.com.
 
@@ -133,7 +130,4 @@ Thank you for choosing Agilizer. We look forward to supporting your business suc
 
 ## Contributors
 @ball2004244
-<<<<<<< Updated upstream
-=======
 @minhtq05
->>>>>>> Stashed changes

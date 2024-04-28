@@ -129,5 +129,5 @@ Support and Feedback
 Thank you for choosing Agilizer. We look forward to supporting your business success!
 
 ## Contributors
-@ball2004244
-@minhtq05
+[@ball2004244](https://github.com/ball2004244)
+[@minhtq05](https://github.com/minhtq05)

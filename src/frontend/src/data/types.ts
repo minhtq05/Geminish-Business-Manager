@@ -3,9 +3,16 @@ export type EmailType = {
   date: string;
   category: "feedback" | "client" | "spam" | "others";
   email: string;
-  content: {heading:string, body:string};
-  user:{name:string,imgHref:string}
+  content: { heading: string; body: string };
+  user: { name: string; imgHref: string };
 };
+export type FeedbackDataType = {
+  id: string;
+  sender: { name: string; email: string };
+  content: { subject: string; body: string };
+  date: string;
+};
+
 export type AnalyticText = {
   heading: string;
   subheading?: string;

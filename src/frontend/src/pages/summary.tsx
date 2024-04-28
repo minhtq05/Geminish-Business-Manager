@@ -5,8 +5,8 @@ import User from "@/components/user";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import { Box } from "@mui/material";
-import React, { useState } from "react";
-
+import React, { useState, useEffect } from "react";
+import customFetch from "@/utils/customFetch";
 import CustomTabPanel from "@/components/customTabPanel";
 
 interface SummaryPageProps {
@@ -14,22 +14,23 @@ interface SummaryPageProps {
 }
 
 const SummaryPage = ({ summaryText }: SummaryPageProps) => {
-  const [value, setValue] = React.useState(0);
+  const [value, setValue] = useState(0);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
-
+  const getSummaryData = async () => {
+    try {
+      const summaryRequest = await customFetch.get("/reports/summarize");
+      console.dir(JSON.parse(summaryRequest.request.response));
+    } catch (error) {
+      console.log(`Error: ${error}`);
+    }
+  };
+  // useEffect(() => {
+  //   getSummaryData();
+  // }, []);
   return (
-    // <div className="bg-[#F9F9F9] flex flex-col justify-start items-center gap-8 h-[100dvh] py-4 overflow-y-auto px-8" id="summary-container">
-    //     {/* <Logo logoImg={<BiLogoCodepen/>} logoText={"Optimum"}/> */}
-    //     <h1 className="text-4xl font-bold text-indigo-600">Summary</h1>
-    //     <Separator/>
-    //     <div className="w-full flex flex-row items-start justify-between gap-4">
-    //         <User fallBack="Chatbot"/>
-    //         <ExpandableComponent content={summaryText ? summaryText :{heading : "Chatbot is still gathering data for feedback, please come later", body : "Co cai cl ay dcmm"}} showsFull={true}/>
-    //     </div>
-    // </div>
     <div
       className="bg-[#F9F9F9] flex flex-col justify-start items-stretch gap-8 h-[100dvh] py-4 overflow-y-auto px-8"
       id="summary-container"
@@ -58,7 +59,7 @@ const SummaryPage = ({ summaryText }: SummaryPageProps) => {
               : {
                   heading:
                     "Chatbot is still gathering data for feedback, please come later",
-                  body: "Co cai cl ay dcmm",
+                  body: "Generating summary data...",
                 }
           }
           showsFull={true}

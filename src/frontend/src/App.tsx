@@ -21,7 +21,7 @@ function App() {
           path="/feedback"
           element={
             <DashboardLayout>
-              <FeedbackPage feedbackData={EmailData} />
+              <FeedbackPage />
             </DashboardLayout>
           }
         />

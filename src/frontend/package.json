@@ -26,6 +26,7 @@
     "clsx": "^2.1.0",
     "cors": "^2.8.5",
     "framer-motion": "^11.1.7",
+    "js-cookie": "^3.0.5",
     "lucide-react": "^0.366.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -37,6 +38,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^20.12.7",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",

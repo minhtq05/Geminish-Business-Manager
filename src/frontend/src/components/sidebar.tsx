@@ -13,19 +13,10 @@ import Logo from "./logo";
 const Sidebar: React.FC = () => {
   return (
     <aside className="w-[fit-content] h-[100dvh] flex flex-col items-center justify-between bg-[#F9F9F9] subpixel-antialiased py-4">
-      <Logo logoImg={<BiLogoCodepen />} logoText={"Optimum"} />
+      <Logo logoImg={<BiLogoCodepen />} logoText={"Agilizer"} />
       <div className="flex flex-col items-left justify-evenly w-full gap-2 md:px-2">
         {NavLinks.map((navItem) => {
           return (
-            // <>
-            //   <Link
-            //     to={navItem.url}
-            //     className="text-xl font-mediumbold links py-2 text-gray-600"
-            //   >
-            //     {navItem.name}
-            //   </Link>
-            //   <Separator />
-            // </>
             <NavItem
               icon={<GoChevronDown />}
               isSeperated={true}
@@ -43,11 +34,6 @@ const Sidebar: React.FC = () => {
           textColor: "text-white",
         }}
       >
-        {/* <Input
-          type="email"
-          placeholder="Send us an email!"
-          className="w-full mb-2"
-        /> */}
         <Button
           type="submit"
           variant="secondary"

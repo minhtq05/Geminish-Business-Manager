@@ -1,13 +1,13 @@
 import User from "@/components/user";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { FeedbackDataType } from "@/data/types";
 import CardUI from "@/components/card";
 import ExpandableContent from "@/components/expandableContent";
-import Tag from "@/components/tag";
-import { EmailType } from "@/data/types";
 import DropDown from "@/components/dropDown";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
 import {
   Select,
   SelectContent,
@@ -19,21 +19,66 @@ import {
 } from "@/components/ui/select";
 import customFetch from "@/utils/customFetch";
 
-interface FeedbackPageProps {
-  feedbackData: EmailType[];
-}
-const getFeedbackData = async () => {
-  try {
-    const dataRequest = await customFetch.get("/feedbacks");
-    console.log(dataRequest);
-  } catch (error) {
-    console.log(`Error: ${error}`);
-  }
-};
+const FeedbackPage: React.FC = () => {
+  const [dataLoaded, setDataLoaded] = useState<boolean>(false);
+  const [feedbackData, setFeedbackData] = useState<FeedbackDataType[]>([
+    {
+      id: "",
+      sender: { name: "", email: "" },
+      content: { subject: "", body: "" },
+      date: "",
+    },
+  ]);
+  const getFeedbackData = async () => {
+    try {
+      console.log(dataLoaded);
+      if (!dataLoaded) {
+        const feedbackDataRequest = await customFetch.get("/feedbacks");
+        const rawFeedbackData = feedbackDataRequest.request.response; // return raw backend data as a {messages : []} string
 
-const FeedbackPage: React.FC<FeedbackPageProps> = ({ feedbackData }) => {
+        let cleanedData: { messages: FeedbackDataType[] } = { messages: [] }; // declare an empty {messages : []} object
+
+        // populate the messages attribute in the cleanData object
+        JSON.parse(rawFeedbackData).messages.forEach((feedback: any) => {
+          cleanedData.messages.push({
+            id: feedback.id,
+            sender: {
+              name: feedback.sender.name,
+              email: feedback.sender.email,
+            },
+            content: {
+              subject: feedback.subject,
+              body: feedback.body,
+            },
+            date: feedback.date,
+          });
+        });
+
+        localStorage.setItem("feedbackData", JSON.stringify(cleanedData)); // cache as a string
+
+        const feedbackDataString = localStorage.getItem("feedbackData");
+        if (feedbackDataString) {
+          setFeedbackData(JSON.parse(feedbackDataString).messages); // Parse string to object
+          console.log(feedbackData);
+        }
+        setDataLoaded(true);
+      } else {
+        const cachedFeedbackDataString = await localStorage.getItem(
+          "feedbackData"
+        );
+        if (cachedFeedbackDataString) {
+          setFeedbackData(JSON.parse(cachedFeedbackDataString).messages); // Parse string to object
+          console.log(feedbackData);
+        }
+      }
+    } catch (error) {
+      console.log(`Error: ${error}`);
+      setDataLoaded(false);
+    }
+  };
   useEffect(() => {
     getFeedbackData();
+    // localStorage.clear();
   }, []);
   return (
     <div
@@ -64,41 +109,43 @@ const FeedbackPage: React.FC<FeedbackPageProps> = ({ feedbackData }) => {
           </SelectContent>
         </Select>
       </div>
-      {feedbackData.map((feedback) => {
-        const headerComponent = (
-          <div className="flex justify-between items-center">
-            <span className="font-semibold">Feedback #{feedback.id}</span>
-            <span className="text-gray-500">{feedback.date}</span>
-          </div>
-        );
+      {Array.isArray(feedbackData) &&
+        feedbackData.map((feedback) => {
+          const headerComponent = (
+            <div className="flex justify-between items-center">
+              <span className="font-semibold">Feedback #{feedback.id}</span>
+              <span className="text-gray-500">{feedback.date}</span>
+            </div>
+          );
 
-        const footerComponent = (
-          <div className="flex items-center justify-between flex-row bg-white text-slate-700 w-full">
-            <User
-              fallBack={feedback.user.name}
-              imgHref={feedback.user.imgHref}
-              className="mr-auto"
-            />
-            <Tag tagContent={feedback.category} className="mx-2" />
-            <DropDown feedback={feedback} />
-          </div>
-        );
+          const footerComponent = (
+            <div className="flex items-center justify-between flex-row bg-white text-slate-700 w-full">
+              <User fallBack={feedback.sender.name} className="mr-auto" />
+              <DropDown feedback={{ user: { name: feedback.sender.name } }} />
+            </div>
+          );
 
-        return (
-          <CardUI
-            className="md:w-[90%] w-full overflow-x-visible drop-shadow-sm flexcard"
-            colorScheme={{
-              bgColor: "bg-white",
-              textColor: "text-slate-600",
-            }}
-            key={feedback.id}
-            headerComponent={headerComponent}
-            footerComponent={footerComponent}
-          >
-            <ExpandableContent content={feedback.content} shownNumber={40} />
-          </CardUI>
-        );
-      })}
+          return (
+            <CardUI
+              className="md:w-[90%] w-full overflow-x-visible drop-shadow-sm flexcard"
+              colorScheme={{
+                bgColor: "bg-white",
+                textColor: "text-slate-600",
+              }}
+              key={feedback.id}
+              headerComponent={headerComponent}
+              footerComponent={footerComponent}
+            >
+              <ExpandableContent
+                content={{
+                  heading: feedback.content.subject,
+                  body: feedback.content.body,
+                }}
+                shownNumber={40}
+              />
+            </CardUI>
+          );
+        })}
     </div>
   );
 };

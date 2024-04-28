@@ -28,7 +28,7 @@ class BusinessAgent():
 
         _gmail_token = self._firestoredb.get_gmail_token()
         self._gmail_service = GmailService(business_name=business_name, gmail_token=_gmail_token)
-        
+
         if _gmail_token is None:
             token = json.loads(self._gmail_service.gmail_token)
             self._firestoredb.save_gmail_token(token)
@@ -37,7 +37,6 @@ class BusinessAgent():
         self._jira = Jira()
         print(f"""Business '{business_name}' initialized!
 You can now use all the features of this business!""")
-        
 
     def inspect(self):
         print("Here is the inspection of this business class: ")
@@ -47,23 +46,21 @@ You can now use all the features of this business!""")
         inspect(self._gemini_agent, private=True)
         inspect(self._firestoredb, private=True)
 
-
     def get_raw_messages(self) -> List[Message]:
         return self._firestoredb.get_all_messages()
-    
 
     def get_reports(self):
         def json_clean(text):
             json_match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
-            if json_match:  
+            if json_match:
                 return json_match.group(1)
             else:
                 return "Something went wrong when cleaning json!"
+
         messages = self._gmail_service.get_all_messages()
         messages = self._gemini_agent.filter_messages(messages)
         json.loads(json_clean(self._gemini_agent.get_feedback_report(messages)))
         return json.loads(json_clean(self._gemini_agent.get_feedback_report(messages)))
-
 
     def existing_message_ids(self):
         return self._firestoredb.get_existing_message_ids()
@@ -82,17 +79,21 @@ You can now use all the features of this business!""")
         messages = [self._gmail_service.get_message_by_id(id) for id in messages]
 
         self._firestoredb.add_messages(messages)
-    def get_filtered_messages(self):
+
+    def get_filtered_messages(self) -> List[Message]:
         messages = self._gmail_service.get_all_messages()
         filtered_messages = self._gemini_agent.filter_messages(messages)
         return filtered_messages
 
     def get_reports_summarize(self, reports: List[dict]):
         pass
+
     def get_improvements_options(self) -> dict:
-        # {'product_name': [[summary 1, description 1],
-        #                   [summary 2, description 2],
-        #                   [summary 3, description 3]]}
+        """
+        dict structure:
+        {'product_name': [[summary 1, description 1], [summary 2, description 2]]                 [summary 3, description 3]]}
+        Use Gemini AI to generate a product improvement options from report
+        """
         options = None
         for i in range(3):
             try:
@@ -108,28 +109,11 @@ You can now use all the features of this business!""")
                 pass
         return options
 
-    def upload_issue(self,payload: List[JiraTicket]) -> dict:
+    def upload_issue(self, payload: List[JiraTicket]) -> dict:
         """
         payload: list of Jira tickets that need to be uploaded
         Upload all ticket from payload to Jira
         """
-        #[JiraTicket]
-        # option_list_raw = self.get_improvements_options()
-        #
-        # payload = []
-        #
-        # for product in option_list_raw:
-        #     print(f'Here the improvement options for {product} and its description')
-        #     for i, option in enumerate(option_list_raw[product]):
-        #         print(f'Option {i + 1}: {option}')
-        #     for tries in range(len(option_list_raw[product])):
-        #         print(f'Choose option number you want to upload as jira ticket for {product}')
-        #         choice = input()
-        #         if choice == 'None':
-        #             break
-        #         choice = int(choice) - 1
-        #         payload += self._jira.option_to_jira(project_key, product, option_list_raw[product][choice])
-        #         print(payload)
         for issue in payload:
             res = self._jira.upload_issue(issue)
             return json.loads(res.text)

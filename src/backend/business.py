@@ -1,5 +1,3 @@
-import random
-import os
 import json
 import re
 from src.api.gmail.service import GmailService
@@ -8,7 +6,10 @@ from src.api.firestore.firestore import FirestoreDB
 from src.api.types import Message, Product
 from rich import print, inspect
 from typing import List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, JiraTicket
+from src.api.jira.agent_jira import Jira
+from src.format import json_clean
+
 # This is a test function only.
 # Remember to change the random module with an id generator
 
@@ -23,20 +24,21 @@ Features:
 
 class BusinessAgent():
     def __init__(self, business_name: str, products: List[Product]):
+        self.products = products
         self._firestoredb = FirestoreDB(business_name=business_name, auto_init=True)
 
         _gmail_token = self._firestoredb.get_gmail_token()
         self._gmail_service = GmailService(business_name=business_name, gmail_token=_gmail_token)
-        
+
         if _gmail_token is None:
             token = json.loads(self._gmail_service.gmail_token)
             self._firestoredb.save_gmail_token(token)
-
 
         self._gemini_agent = GeminiCustomerFeedbackAgent(business_name=business_name, products=products)
 
         self.raw_messages = None
         self.reports = None
+        self._jira = Jira()
         print(f"""Business '{business_name}' initialized!
 You can now use all the features of this business!""")
         
@@ -58,7 +60,6 @@ You can now use all the features of this business!""")
         inspect(self._gemini_agent, private=True)
         inspect(self._firestoredb, private=True)
 
-
     def unix_time(self, time: datetime):
         return datetime.timestamp(time)
     
@@ -77,7 +78,7 @@ You can now use all the features of this business!""")
     def get_reports(self):
         def json_clean(text):
             json_match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
-            if json_match:  
+            if json_match:
                 return json_match.group(1)
             else:
                 return "Something went wrong when cleaning json!"
@@ -118,7 +119,6 @@ You can now use all the features of this business!""")
             
         return self.reports
 
-
     def existing_message_ids(self):
         return self._firestoredb.get_existing_message_ids()
 
@@ -137,6 +137,52 @@ You can now use all the features of this business!""")
 
         self._firestoredb.add_messages(messages)
 
+    def get_filtered_messages(self) -> List[Message]:
+        messages = self._gmail_service.get_all_messages()
+        filtered_messages = self._gemini_agent.filter_messages(messages)
+        return filtered_messages
 
-    def get_reports_summarize(self):
+    def get_reports_summarize(self, reports: List[dict]):
         pass
+
+    def get_improvements_options(self) -> dict:
+        """
+        dict structure:
+        {'product_name': [[summary 1, description 1], [summary 2, description 2]]                 [summary 3, description 3]]}
+        Use Gemini AI to generate a product improvement options from report
+        """
+        options = None
+        for i in range(3):
+            try:
+                options = self._gemini_agent.create_improvements_option(self.get_filtered_messages())
+                options = re.sub("\'", "\"", options)
+                options = json_clean(options)
+                options = json.loads(options)
+                print(options)
+                break
+            except Exception as e:
+                print(f'Error: {e}. Trying again')
+                print('Number of tries:', i)
+                pass
+        return options
+
+    def upload_issue(self, payload: List[JiraTicket]) -> dict:
+        """
+        payload: list of Jira tickets that need to be uploaded
+        Upload all ticket from payload to Jira
+        """
+        for issue in payload:
+            res = self._jira.upload_issue(issue)
+            return json.loads(res.text)
+
+    def get_all_issue(self, key: str) -> List[JiraTicket]:
+        """
+        key: Jira project chosen to upload the issue
+        return a list of JiraTicket
+        create a list of JiraTicket from list of improvement options
+        """
+        option_list_raw = self.get_improvements_options()
+        ticket_list = []
+        for product in option_list_raw:
+            ticket_list += self._jira.option_to_jira(key, product, option_list_raw[product])
+        return ticket_list

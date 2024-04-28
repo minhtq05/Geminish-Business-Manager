@@ -5,47 +5,74 @@ import json
 
 
 def feedback_report_prompt(ref_products: List[Product], messages: List[Message]) -> str:
-    return '''Analyse users' feedback emails, generate a list of reports for feedback that matches the list of products with descriptions using this JSON schema:
-[
-    List of the reports for each feedback email with JSON schema as below:
-    {
-        "sender": "string, email of the sender",
-        "products": [
-            List of the products that the user mentioned with JSON schema as below:
-            {
-                "id": "string, id of the product",
-                "name": "string, Name of product",
-                "status": "string, status of the feedback (mostly positive, somewhat positive, neutral, somewhat negative, and mostly negative)",
-                "summary": [
-                    List of the exact feedback sentences with format as below:
-                    "string, feedback sentence",
-                ]
-            }
-        ]
-    }
-]
-    
-If a message doesn't relate to any of the products and descriptions, return an empty products list. ''' + f'''
-Here is the list of products:
-{products_format(ref_products)}
-Here is the list of users' feedback:
+    return '''Analyse users' feedback emails and generate reports based on the products each user mentioned from the below list of products with their description.
+The reports must be formated in JSON. The report must not have /n or anything like that 
+Each report should have the following attributes: sender - the email address of the sender, products - a list of objects representing products that the user mentioned. For each object inside the products is a dictionary with 4 attributes: the ID of the product, the name of the product, the status of the feedback for this product (mostly positive, somewhat positive, neutral, somewhat negative, and mostly negative), and the short summary of the feedback about this product written in third person.
+If the message is not related to any of the products and their description, it should have an empty products list.
+Here is a sample report, the report must look like this:
+{
+    "reports": [
+        {
+            "sender": "emailofthesender1@gmail.com",
+            "products": [
+                {
+                    "id": 1234,
+                    "name": "Product 1",
+                    "status": "mostly positive",
+                    "summary": "Product is great!"
+                },
+                {
+                    "id": 5678,
+                    "name": "Product 2",
+                    "status": "mostly negative",
+                    "summary": "Have a lot of bugs. The color is too bright and has no dark mode."
+                },
+                {
+                    "id": 1357,
+                    "name": "Product 3",
+                    "status": "neutral",
+                    "summary": "The documentation is hard to read. However, still readable and can be improved."
+                }
+            ]
+        },
+        {
+            "sender": "emailofthesender2@gmail.com",
+            "products": [
+                {
+                    "id": 5678,
+                    "name": "Product 3",
+                    "status": "somewhatnegative",
+                    "summary": "Doesn't seem working after booted up"
+                },
+                {
+                    "id": 1357,
+                    "name": "Product 7",
+                    "status": "somewhat negative",
+                    "summary": "Didn't run after hours of booting up"
+                }
+            ]
+        }
+    ]
+}
+''' + f'''
+Here is a list of products:
+{ref_products}
+And here are the users' feedback:
 {messages_format(messages)}
-You must not change the order of the messages
 '''
 
 
 def filter_spam_prompt(ref_products: List[Product], ref_company: str, messages: List[Message]) -> str:
-    return f'''Analyze emails, generate a list of booleans (True,False) indicating if each email is a legit feedback or not related to the below list of products including their descriptions.
-You must strictly response with a string of boolean values separated by commas with no leading spaces.
+    return f'''True if a message is a legit feedback and False if it is a spam email or an unrelated message.
+A feedback body or subject must include company name: {ref_company} and products: {ref_products} 
+Strictly be a string of boolean values (True or False) separated by commas with no leading spaces.
+Number of boolean values must be equal to {len(messages)}
+Here is a response example:
 
-Here is the list of products of company '{ref_company}' and their detailed descriptions:
-{ref_products}
+False,True,False,True,True
+
 Here are the messages:
-
-{messages_format(messages)}
-
-End of messages.
-I have {len(messages)}, you must response with exactly {len(messages)} boolean values.'''
+{messages_format(messages)}'''
 
 
 def sample_feedback_emails_prompt(ref_products: List[Product], ref_company_name: str = None, num_feedbacks: int = 5) -> str:
@@ -74,7 +101,7 @@ Here are the products:
 def response_generate_prompt(ref_products: List[Product], messages: List[Message]) -> str:
     return '''Generate responses to the users' feedback emails based on the products each user mentioned from the below list of products with their description.
 Use friendly tone and be as concise as possible.
-Each response should be formated in JSON and has 3 attributes: receiver - the sender of the feedback we received earlier, subject - the subject of the response, and body - the body of the feedback.
+Each response should be formatted in JSON and has 3 attributes: receiver - the sender of the feedback we received earlier, subject - the subject of the response, and body - the body of the feedback.
 Here is a sample response:
 {
     "responses": [
@@ -91,30 +118,16 @@ Here is a list of products:
 And here are the users' feedback:
 {sample_messages_format(messages)}'''
 
-
-
-
-
-# Each report stricly have 5 attributes: sender: sender's email address, products: list of products user mentioned. Each products is a dictionary with 4 attributes: products' ID, product's name, status of feedback for this product (mostly positive, somewhat positive, neutral, somewhat negative, and mostly negative), and a list of feedback sentences summarized.
-
-#  "sender": "emailofthesender1@gmail.com",
-#         "products": [
-#             {
-#                 "id": "id of the product",
-#                 "name": "Name of product 1",
-#                 "status": "status of the feedback",
-#                 "summary": []
-#             },
-#             {
-#                 "id": "idoftheproduct2",
-#                 "name": "Name of product 2",
-#                 "status": "status of the feedback",
-#                 "summary": [
-#                     "feedback sentence 1",
-#                     "feedback sentence 2",
-#                     "feedback sentence 3",
-#                     "feedback sentence 4"
-#                 ]
-#             },
-#         ]
-#     }
+def improvements_option(ref_products: List[Product], ref_company_name: str = None,  report: dict = None) -> str:
+    return f'''Generate a list of suggestions for a list of products for company {ref_company_name} based on a feedback report.
+The output must strictly be in JSON schema:''' + '''
+{
+    List all of the products here.
+    For example:
+    "name of product": "list, a [] list of improvements separated by commas. Each improvement is a list of two strings: ["summary, string, the summary of the improvement", "description, string, the description of the improvement"].
+}''' + f'''
+Here is a list of products:
+{ref_products}
+Here is the feedback report:
+{report}
+'''

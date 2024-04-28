@@ -7,8 +7,6 @@ from src.api.config import FIREBASE_API_CREDENTIAL
 from typing import List, Union, Dict
 from datetime import datetime, timedelta
 from rich import print
-import sys
-
 
 """
 To-do list:
@@ -16,7 +14,7 @@ To-do list:
 
 """
 
-cred = credentials.Certificate(f"src/api/firestore/{FIREBASE_API_CREDENTIAL}")
+cred = credentials.Certificate(f"{FIREBASE_API_CREDENTIAL}")
 app = firebase_admin.initialize_app(cred)
 db = firestore.client()
 

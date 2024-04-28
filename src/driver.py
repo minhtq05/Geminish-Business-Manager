@@ -179,6 +179,21 @@ def reports():
     """
     return gemini_bm.get_reports()
 
+@app.get("/jira")
+async def push_issues_to_web(project_key):
+    """
+        This is the route to get all the jira ticket
+        This route will only return the jira ticket from the report for now
+    """
+    return {
+        "tickets": gemini_bm.get_all_issue(project_key)
+    }
+
+@app.post("/jira/upload")
+async def push_issues_to_jira(request: Request):
+    data = await request.json()
+    output = gemini_bm.upload_issue(data)
+    return output
 
 # @app.get("/reports/summarize")
 # @decorator

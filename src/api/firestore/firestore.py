@@ -2,7 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from firebase_admin.firestore import Query
 from google.cloud.firestore_v1.base_query import FieldFilter
-from src.api.types import Message
+from src.api.types import Message, User, Report
 from src.api.config import FIREBASE_API_CREDENTIAL
 from typing import List, Union, Dict
 from datetime import datetime, timedelta
@@ -57,7 +57,9 @@ class FirestoreDB():
         if self.info is None:
             if self._auto_init:
                 self.init_business(self.business_name)
-            print(f"Warning: No business found under the name '{business_name}'! Please initialize the business using the 'init_business' method first!")
+                print(f"Warning: No business found under the name '{business_name}'! However, auto_init is set to True so wae already initialized the business for you!")
+            else:
+                print(f"Warning: No business found under the name '{business_name}'! Please initialize the business using the 'init_business' method first!")
         else:
             self.info = {
                 "id": self.info.id,
@@ -71,11 +73,22 @@ class FirestoreDB():
             self.load_data()
 
 
+    def timeit(func):
+        def wrapper(self, *args, **kwargs):
+            start = datetime.now()
+            print(f"Start running function [green]{func.__name__}[/]")
+            result = func(self, *args, **kwargs)        
+            print(f"Function: [green]{func.__name__}[/], execution time: {(datetime.now() - start).seconds} s.")
+            return result
+        return wrapper
+
+    @timeit
     def load_data(self):
         if self.is_initialized:
             self._business_db = db.collection("businesses").document(self._business_id)
             self._users_collection_ref = self._business_db.collection(self.collections["users"])
             self._emails_collection_ref = self._business_db.collection(self.collections["messages"])
+            self._report_doc = self._business_db.collection("reports").document("reports")
 
 
     def initialize_required(func):
@@ -99,7 +112,7 @@ class FirestoreDB():
         else:
             return next(query, None)
 
-
+    @timeit
     def init_business(self, business_name: str) -> None:
         if self.is_initialized:
             raise Warning("Business is already initialized!")
@@ -109,8 +122,6 @@ class FirestoreDB():
             "name": business_name,
             "created_on": datetime.now(),
         })
-
-
 
         data = data.get()
 
@@ -137,12 +148,12 @@ class FirestoreDB():
         if field is None:
             raise ValueError(f"Field {field_name} cannot be None")
         
-
+    @timeit
     def get_gmail_token(self) -> Dict:
         query = self._emails_collection_ref.document("token").get()
         return query.to_dict()
     
-
+    @timeit
     def save_gmail_token(self, token: Dict):
         self._emails_collection_ref.document("token").set(token)
         
@@ -169,13 +180,12 @@ class FirestoreDB():
         self._emails_collection_ref.document("existing_message_ids").update(new_message_ids)
         print(f"Add/Update new {len(emails_list)} message(s) to the database!")
 
-
-
+    @timeit
     def get_existing_message_ids(self) -> List[str]:
         doc = self._emails_collection_ref.document("existing_message_ids").get()
         if not doc.exists:
             if self._auto_init:
-                self._emails_collection_ref.document("existing_message_ids").set({})
+                self._emails_collection_ref.document("existing_message_ids").st({})
                 return {}
             else:
                 raise RuntimeError("File 'existing_message_ids' does not exist!")
@@ -183,6 +193,7 @@ class FirestoreDB():
 
 
     @initialize_required
+    @timeit
     def get_all_messages(self) -> List[Message]:
         output = []
         # create reference to email collection in db
@@ -194,6 +205,7 @@ class FirestoreDB():
 
 
     @initialize_required
+    @timeit
     def delete_messages_by_id(self, query_id: str) -> None:
         emails_to_delete = (
             self._emails_collection_ref
@@ -207,6 +219,7 @@ class FirestoreDB():
 
 
     @initialize_required
+    @timeit
     def get_message_by_id(self, query_id: str) -> Union[Message, None]:
         email_with_id = (
             self._emails_collection_ref
@@ -221,6 +234,7 @@ class FirestoreDB():
             
 
     @initialize_required
+    @timeit 
     def update_message_by_id(self, query_id: str, new_email: Message) -> None:
         emails_to_update = (
             self._emails_collection_ref
@@ -234,6 +248,7 @@ class FirestoreDB():
         
         
     @initialize_required
+    @timeit
     def get_message_by_date(self, query_date: datetime) -> List[Message]:
         # Query returning every messages sent during query_date, from 00:00:00 am to 11:59:59 pm
         output = []
@@ -253,6 +268,7 @@ class FirestoreDB():
 
 
     @initialize_required
+    @timeit
     def get_email_by_range(self, start_query_date: datetime, end_query_date: datetime) -> List[Message]:
         output = []
         start_date = start_query_date.timestamp()
@@ -267,9 +283,24 @@ class FirestoreDB():
         for email in emails_collection:
             output.append(email)
         return output
+    
+    @timeit
+    def load_new_reports(self, reports: Dict[str, List[Report]]):
+        """
+        Overwrite the old feedback reports
+        """
+        self._report_doc.set(reports)
 
+    @timeit
+    def get_reports(self) -> Dict[str, List[Report]]:
+        """
+        Get all feedbacl reports
+        """
+        doc = self._report_doc.get()
+        return doc.to_dict()
 
     @initialize_required
+    @timeit
     def user_exists(self, email: str):
         self.validate_field(email, "email")
         
@@ -284,6 +315,7 @@ class FirestoreDB():
 
 
     @initialize_required
+    @timeit
     def register_new_user(self, email: str, password: str, is_admin: bool = False) -> bool | Exception:
         self.validate_field(email, "email")
         self.validate_field(password, "password")
@@ -300,6 +332,7 @@ class FirestoreDB():
 
 
     @initialize_required
+    @timeit
     def authenticate_user(self, email: str, password: str) -> bool | Exception:
         user = self.user_exists(email)
         if not user:

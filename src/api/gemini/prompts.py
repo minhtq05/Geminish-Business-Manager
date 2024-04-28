@@ -1,6 +1,8 @@
 from src.api.types import Message, Product
 from typing import List
-from src.format import sample_messages_format, messages_format
+from src.api.gemini.formats import messages_format, sample_messages_format, products_format
+import json
+
 
 def feedback_report_prompt(ref_products: List[Product], messages: List[Message]) -> str:
     return '''Analyse users' feedback emails and generate reports based on the products each user mentioned from the below list of products with their description.

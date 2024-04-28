@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.exceptions import HTTPException
 from firebase_admin import auth
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.backend.business import BusinessAgent
 from src.api.types import Product

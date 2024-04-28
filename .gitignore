@@ -10,6 +10,7 @@ node_modules
 .env.development.local
 .env.test.local
 .env.production.local
+venv/
 
 # Cache and log files
 .cache
@@ -39,3 +40,6 @@ venv/
 
 # Credentials
 *.json
+
+# Ignore all config files
+vite.config.*.mjs

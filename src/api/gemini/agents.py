@@ -64,9 +64,8 @@ class GeminiCustomerFeedbackAgent():
             llm, generation_config=self.analyze_config)
         self.llm_generator = genai.GenerativeModel(
             llm, generation_config=self.generate_config)
-        
-        print('Gemini APIs initiated successfully.')
 
+        print('Gemini APIs initiated successfully.')
 
     # def initialize_required(func):
     #     def wrapper(self, *args, **kwargs):
@@ -101,18 +100,19 @@ Your task is to:
         if llm_type is None:
             return 'No role was provided.'
         elif llm_type == 'analyzer':
-            res = self.llm_analizer.generate_content(prompt, safety_settings=_safety_settings)
+            res = self.llm_analizer.generate_content(
+                prompt, safety_settings=_safety_settings)
             if hasattr(res, 'text'):
                 return res.text
                 # return json_clean(res.text)
         elif llm_type == 'generator':
-            res = self.llm_generator.generate_content(prompt, safety_settings=_safety_settings)
+            res = self.llm_generator.generate_content(
+                prompt, safety_settings=_safety_settings)
             return res.text
         else:
-            return 'Unknown role.'            
-        
+            return 'Unknown role.'
+
         return "Something went wrong!"
-    
 
     def get_feedback_report(self, messages: List[Message] = None):
         if messages is not None:
@@ -132,10 +132,11 @@ Your task is to:
         """
         Generate sample feedback messages and later prompt the users to reply to those messages and learn their styles and tones.
         """
-        prompt = sample_feedback_emails_prompt(self.products, self.business_name, 5)
+        prompt = sample_feedback_emails_prompt(
+            self.products, self.business_name, 5)
 
         return self.execute('generator', prompt)
-    
+
     def filter_messages(self, messages: List[Message]) -> List[Message]:
         """
         Filter spam and unrelated messages from a list of messages
@@ -149,14 +150,15 @@ Your task is to:
                 continue
             unempty_message.append(message)
         messages = unempty_message
-        prompt = filter_spam_prompt(self.products, self.business_name, messages)
+        prompt = filter_spam_prompt(
+            self.products, self.business_name, messages)
         filter = self.execute('analyzer', prompt)
         filter = filter.strip().split(',')
         filter = [True if x == "True" else False for x in filter]
         messages = [m for i, m in enumerate(messages) if filter[i]]
         return messages
 
-    def create_improvements_option(self, report = None) -> str:
+    def create_improvements_option(self, report=None) -> str:
         prompt = improvements_option(self.products, self.business_name, report)
         options = self.execute('generator', prompt)
         return options
@@ -168,6 +170,3 @@ Give me a list of 10 breakfasts that are healthy with JSON schema separated by c
 ''', safety_settings=_safety_settings, stream=True)
         async for chunk in response:
             yield chunk.text
-        
-        
-        

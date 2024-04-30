@@ -41,22 +41,19 @@ Other than that, you don't have to worry about anything else.
 """
 
 
-
-
-
-app = FastAPI() # our main FastAPI application
-businesses = [] # a list of all the businesses
+app = FastAPI()  # our main FastAPI application
+businesses = []  # a list of all the businesses
 # firebaseConfig = {} # Replace with real firebase config later
 # pb = pyrebase.initialize_app(firebaseConfig)
 
 
 allow_all = ['*']
 app.add_middleware(
-   CORSMiddleware,
-   allow_origins=allow_all,
-   allow_credentials=True,
-   allow_methods=allow_all,
-   allow_headers=allow_all
+    CORSMiddleware,
+    allow_origins=allow_all,
+    allow_credentials=True,
+    allow_methods=allow_all,
+    allow_headers=allow_all
 )
 
 
@@ -65,9 +62,10 @@ products = [
             description='This is the blackest coffee we have'),
     Product(id=5678, name='White Coffee',
             description='This is the whiest coffee we have'),
-] # a list of all the products
+]  # a list of all the products
 
-gemini_bm = BusinessAgent("Geminish BM", products=products) # initializing the business
+# initializing the business
+gemini_bm = BusinessAgent("Geminish BM", products=products)
 
 
 # def login_required(func):
@@ -118,18 +116,18 @@ def index():
 # # Signup endpoint
 # @app.post('/signup', include_in_schema=False)
 # @decorator
-# async def signup(request: Request): 
+# async def signup(request: Request):
 #     req = await request.json()
 #     email = req['email']
 #     password = req['password']
 #     if email is None or password is None:
 #         return HTTPException(detail={'message': 'Missing Email or Password'}, status_code=400)
-    
+
 #     try:
 #         user = auth.create_user(email=email, password=password)
 #     except Exception as e:
-#         return HTTPException(detail={'message': 'Error creating user: ' + str(e)}, status_code=400)    
-    
+#         return HTTPException(detail={'message': 'Error creating user: ' + str(e)}, status_code=400)
+
 
 # # Login endpoint
 # @app.post('/login', include_in_schema=False)
@@ -145,7 +143,7 @@ def index():
 #         return JSONResponse(content={"token": jwt}, status_code=200)
 #     except Exception as e:
 #         return HTTPException(detail={'message': 'There was an error logging in: ' + str(e)}, status_code=400)
-    
+
 
 # # ping endpoint
 # @app.post("/ping", include_in_schema=False)
@@ -178,6 +176,24 @@ def reports():
     This route will only return the reports of the "Geminish BM" business for now
     """
     return gemini_bm.get_reports()
+
+
+@app.get("/jira")
+async def push_issues_to_web(project_key):
+    """
+        This is the route to get all the jira ticket
+        This route will only return the jira ticket from the report for now
+    """
+    return {
+        "tickets": gemini_bm.get_all_issue(project_key)
+    }
+
+
+@app.post("/jira/upload")
+async def push_issues_to_jira(request: Request):
+    data = await request.json()
+    output = gemini_bm.upload_issue(data)
+    return output
 
 
 # @app.get("/reports/summarize")

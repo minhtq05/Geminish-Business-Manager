@@ -1,14 +1,16 @@
 import json
 import re
 import time
+from typing import List
+from datetime import datetime, timedelta
 
+from rich import print, inspect
+
+from src.api.config import GEMINI_API_KEY_BACKUP
 from src.api.gmail.service import GmailService
 from src.api.gemini.agents import GeminiCustomerFeedbackAgent
 from src.api.firestore.firestore import FirestoreDB
 from src.api.types import Message, Product
-from rich import print, inspect
-from typing import List
-from datetime import datetime, timedelta
 from src.api.types import JiraTicket
 from src.api.jira.agent import Jira
 from src.format import json_clean
@@ -28,6 +30,7 @@ Features:
 class BusinessAgent():
     def __init__(self, business_name: str, products: List[Product]):
         self.products = products
+        self.business_name = business_name
         self._firestoredb = FirestoreDB(
             business_name=business_name, auto_init=True)
 
@@ -159,7 +162,7 @@ You can now use all the features of this business!""")
         """
         dict structure:
         {'product_name': [[summary 1, description 1], [summary 2, description 2]]                 [summary 3, description 3]]}
-        Use Gemini AI to generate a product improvement options from report
+        Use Gemini AI to generate a product improvement options from filtered messages
         """
         options = None
         for i in range(3):
@@ -173,7 +176,13 @@ You can now use all the features of this business!""")
                 break
             except Exception as e:
                 print(f'Error: {e}. Trying again')
-                print('Number of tries:', i)
+                print('Number of tries:', i+1)
+                if e == '429 Resource has been exhausted (e.g. check quota).':
+                    self._gemini_agent = GeminiCustomerFeedbackAgent(
+                        business_name=self.business_name,
+                        products=self.products,
+                        api = GEMINI_API_KEY_BACKUP
+                    )
                 options = {}
                 time.sleep(2)
                 pass
@@ -184,12 +193,12 @@ You can now use all the features of this business!""")
         payload: list of Jira tickets that need to be uploaded
         Upload all ticket from payload to Jira
         """
-        upload_messages = []
+        jira_response = []
         for issue in payload:
             res = self._jira.upload_issue(issue)
             print(issue)
-            upload_messages.append(json.loads(res.text))
-        return upload_messages
+            jira_response.append(json.loads(res.text))
+        return jira_response
 
     def get_all_issue(self, key: str) -> List[JiraTicket]:
         """

@@ -182,8 +182,9 @@ def reports():
 @app.get("/jira")
 async def push_issues_to_web(project_key):
     """
-        This is the route to get all the jira ticket
-        This route will only return the jira ticket from the report for now
+        project_key: the key of the jira project that the user want to upload to
+        This is the route to get all the jira tickets
+        return: all jira tickets that user can choose to upload
     """
     return {
         "tickets": gemini_bm.get_all_issue(project_key)
@@ -192,7 +193,12 @@ async def push_issues_to_web(project_key):
 
 @app.post("/jira/upload")
 async def push_issues_to_jira(request: Request):
+    """
+    :param request: a list of jira tickets that user choose to upload
+    :return: response from jira if the file has been uploaded successfully
+    """
     data = await request.json()
+    print(data)
     output = gemini_bm.upload_issue(data)
     return output
 

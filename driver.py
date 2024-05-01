@@ -47,7 +47,7 @@ businesses = []  # a list of all the businesses
 # pb = pyrebase.initialize_app(firebaseConfig)
 
 
-allow_all = ['*']
+allow_all = ['http://localhost:5173']
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_all,

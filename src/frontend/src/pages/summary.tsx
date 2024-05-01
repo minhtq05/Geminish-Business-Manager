@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import ExpandableComponent from "@/components/expandableContent";
 import { Separator } from "@/components/ui/separator";
 import User from "@/components/user";
@@ -21,15 +20,15 @@ const SummaryPage = ({ summaryText }: SummaryPageProps) => {
   };
   const getSummaryData = async () => {
     try {
-      const summaryRequest = await customFetch.get("/reports/summarize");
-      console.dir(JSON.parse(summaryRequest.request.response));
+      const summaryRequest = await customFetch.get("/reports");
+      console.log(summaryRequest.data.reports);
     } catch (error) {
       console.log(`Error: ${error}`);
     }
   };
-  // useEffect(() => {
-  //   getSummaryData();
-  // }, []);
+  useEffect(() => {
+    getSummaryData();
+  }, []);
   return (
     <div
       className="bg-[#F9F9F9] flex flex-col justify-start items-stretch gap-8 h-[100dvh] py-4 overflow-y-auto px-8"

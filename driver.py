@@ -164,7 +164,8 @@ def feedbacks():
     This is the route to get all the feedbacks
     This route will only return the feedbacks of the "Geminish BM" business for now
     """
-    return gemini_bm.get_raw_messages()
+    output = gemini_bm.get_raw_messages()
+    return output
 
 
 @app.get("/reports")

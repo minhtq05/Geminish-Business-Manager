@@ -51,8 +51,7 @@ You can now use all the features of this business!""")
             start = datetime.now()
             print(f"Start running function [green]{func.__name__}[/]")
             result = func(self, *args, **kwargs)
-            print(f"Function: [green]{
-                  func.__name__}[/], execution time: {(datetime.now() - start).seconds} s.")
+            print(f"Function: [green]{func.__name__}[/], execution time: {(datetime.now() - start).seconds} s.")
             return result
         return wrapper
 
@@ -98,10 +97,10 @@ You can now use all the features of this business!""")
 
             return filtered_messages
 
-        if self.reports is None:
-            self.reports = self._firestoredb.get_reports()
-            self.reports['updated_on'] = datetime.fromtimestamp(
-                self.reports['updated_on'].timestamp())
+        # if self.reports is None:
+        #     self.reports = self._firestoredb.get_reports()
+        #     self.reports['updated_on'] = datetime.fromtimestamp(
+        #         self.reports['updated_on'].timestamp())
 
         # if not found give the first day of 2000
         if self.reports is None or (datetime.now() - self.reports.get("updated_on", datetime.min) > timedelta(hours=1)):

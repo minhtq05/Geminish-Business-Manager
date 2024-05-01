@@ -54,9 +54,10 @@ class Jira():
         """
         ticket_list = []
 
-        for i in range(len(option_list) - 1):
-            summary = option_list[i]
-            description = option_list[i + 1]
+        for i in range(len(option_list)):
+            option = option_list[i]
+            summary = option[i]
+            description = option[i + 1]
             ticket_list.append(JiraTicket(key, product, summary, description))
         return ticket_list
 

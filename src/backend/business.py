@@ -1,5 +1,7 @@
 import json
 import re
+import time
+
 from src.api.gmail.service import GmailService
 from src.api.gemini.agents import GeminiCustomerFeedbackAgent
 from src.api.firestore.firestore import FirestoreDB
@@ -172,17 +174,22 @@ You can now use all the features of this business!""")
             except Exception as e:
                 print(f'Error: {e}. Trying again')
                 print('Number of tries:', i)
+                options = {}
+                time.sleep(2)
                 pass
         return options
 
-    def upload_issue(self, payload: List[JiraTicket]) -> dict:
+    def upload_issue(self, payload: List[JiraTicket]) -> List:
         """
         payload: list of Jira tickets that need to be uploaded
         Upload all ticket from payload to Jira
         """
+        upload_messages = []
         for issue in payload:
             res = self._jira.upload_issue(issue)
-            return json.loads(res.text)
+            print(issue)
+            upload_messages.append(json.loads(res.text))
+        return upload_messages
 
     def get_all_issue(self, key: str) -> List[JiraTicket]:
         """
@@ -191,8 +198,10 @@ You can now use all the features of this business!""")
         create a list of JiraTicket from list of improvement options
         """
         option_list_raw = self.get_improvements_options()
+
         ticket_list = []
-        for product in option_list_raw:
-            ticket_list += self._jira.option_to_jira(
-                key, product, option_list_raw[product])
+        for product, options in option_list_raw.items():
+            jira_ticket_list = self._jira.option_to_jira(key, product, options)
+            ticket_list.extend(jira_ticket_list)
+            print(ticket_list)
         return ticket_list

@@ -212,3 +212,5 @@ async def push_issues_to_jira(request: Request):
 # @decorator
 # async def testanalyzer():
 #     return StreamingResponse(gemini_bm._gemini_agent.test_model_analyzer(), media_type='text/event-stream')
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=5001)

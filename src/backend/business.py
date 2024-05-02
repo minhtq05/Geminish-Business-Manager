@@ -1,12 +1,16 @@
 import json
 import re
+import time
+from typing import List
+from datetime import datetime, timedelta
+
+from rich import print, inspect
+
+from src.api.config import GEMINI_API_KEY_BACKUP
 from src.api.gmail.service import GmailService
 from src.api.gemini.agents import GeminiCustomerFeedbackAgent
 from src.api.firestore.firestore import FirestoreDB
 from src.api.types import Message, Product
-from rich import print, inspect
-from typing import List
-from datetime import datetime, timedelta
 from src.api.types import JiraTicket
 from src.api.jira.agent import Jira
 from src.format import json_clean
@@ -26,6 +30,7 @@ Features:
 class BusinessAgent():
     def __init__(self, business_name: str, products: List[Product]):
         self.products = products
+        self.business_name = business_name
         self._firestoredb = FirestoreDB(
             business_name=business_name, auto_init=True)
 
@@ -51,8 +56,7 @@ You can now use all the features of this business!""")
             start = datetime.now()
             print(f"Start running function [green]{func.__name__}[/]")
             result = func(self, *args, **kwargs)
-            print(f"Function: [green]{
-                  func.__name__}[/], execution time: {(datetime.now() - start).seconds} s.")
+            print(f"Function: [green]{func.__name__}[/], execution time: {(datetime.now() - start).seconds} s.")
             return result
         return wrapper
 
@@ -98,10 +102,10 @@ You can now use all the features of this business!""")
 
             return filtered_messages
 
-        if self.reports is None:
-            self.reports = self._firestoredb.get_reports()
-            self.reports['updated_on'] = datetime.fromtimestamp(
-                self.reports['updated_on'].timestamp())
+        # if self.reports is None:
+        #     self.reports = self._firestoredb.get_reports()
+        #     self.reports['updated_on'] = datetime.fromtimestamp(
+        #         self.reports['updated_on'].timestamp())
 
         # if not found give the first day of 2000
         if self.reports is None or (datetime.now() - self.reports.get("updated_on", datetime.min) > timedelta(hours=1)):
@@ -158,7 +162,7 @@ You can now use all the features of this business!""")
         """
         dict structure:
         {'product_name': [[summary 1, description 1], [summary 2, description 2]]                 [summary 3, description 3]]}
-        Use Gemini AI to generate a product improvement options from report
+        Use Gemini AI to generate a product improvement options from filtered messages
         """
         options = None
         for i in range(3):
@@ -172,18 +176,25 @@ You can now use all the features of this business!""")
                 break
             except Exception as e:
                 print(f'Error: {e}. Trying again')
-                print('Number of tries:', i)
+                print('Number of tries:', i+1)
+                if e == '429 Resource has been exhausted (e.g. check quota).':
+                    self._gemini_agent = GeminiCustomerFeedbackAgent(
+                        business_name=self.business_name,
+                        products=self.products,
+                        api = GEMINI_API_KEY_BACKUP
+                    )
+                options = {}
+                time.sleep(2)
                 pass
         return options
 
-    def upload_issue(self, payload: List[JiraTicket]) -> dict:
+    def upload_issue(self, payload: List[JiraTicket]) -> List:
         """
         payload: list of Jira tickets that need to be uploaded
         Upload all ticket from payload to Jira
         """
-        for issue in payload:
-            res = self._jira.upload_issue(issue)
-            return json.loads(res.text)
+        jira_response = [self._jira.upload_issue(issue) for issue in payload]
+        return jira_response
 
     def get_all_issue(self, key: str) -> List[JiraTicket]:
         """
@@ -193,7 +204,8 @@ You can now use all the features of this business!""")
         """
         option_list_raw = self.get_improvements_options()
         ticket_list = []
-        for product in option_list_raw:
-            ticket_list += self._jira.option_to_jira(
-                key, product, option_list_raw[product])
+        for product, options in option_list_raw.items():
+            jira_ticket_list = self._jira.option_to_jira(key, product, options)
+            ticket_list.extend(jira_ticket_list)
+            print(ticket_list)
         return ticket_list

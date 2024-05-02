@@ -141,14 +141,9 @@ Your task is to:
         """
         Filter spam and unrelated messages from a list of messages
         """
-        unempty_message = []
         for message in messages:
             del message["type"], message['id'], message['send_date'], message['content_type'], message['labels']
-
-        for i, message in enumerate(messages):
-            if message.get("body", "") == "":
-                continue
-            unempty_message.append(message)
+        unempty_message = [message for message in messages if message.get("body", "") != ""]
         messages = unempty_message
         prompt = filter_spam_prompt(
             self.products, self.business_name, messages)

@@ -164,7 +164,8 @@ def feedbacks():
     This is the route to get all the feedbacks
     This route will only return the feedbacks of the "Geminish BM" business for now
     """
-    return gemini_bm.get_raw_messages()
+    output = gemini_bm.get_raw_messages()
+    return output
 
 
 @app.get("/reports")
@@ -181,8 +182,9 @@ def reports():
 @app.get("/jira")
 async def push_issues_to_web(project_key):
     """
-        This is the route to get all the jira ticket
-        This route will only return the jira ticket from the report for now
+        project_key: the key of the jira project that the user want to upload to
+        This is the route to get all the jira tickets
+        return: all jira tickets that user can choose to upload
     """
     return {
         "tickets": gemini_bm.get_all_issue(project_key)
@@ -191,7 +193,12 @@ async def push_issues_to_web(project_key):
 
 @app.post("/jira/upload")
 async def push_issues_to_jira(request: Request):
+    """
+    :param request: a list of jira tickets that user choose to upload
+    :return: response from jira if the file has been uploaded successfully
+    """
     data = await request.json()
+    print(data)
     output = gemini_bm.upload_issue(data)
     return output
 
@@ -211,3 +218,5 @@ async def push_issues_to_jira(request: Request):
 # @decorator
 # async def testanalyzer():
 #     return StreamingResponse(gemini_bm._gemini_agent.test_model_analyzer(), media_type='text/event-stream')
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=5001)

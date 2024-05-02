@@ -14,7 +14,7 @@ To-do list:
 
 """
 
-cred = credentials.Certificate(f"src/api/firestore/{FIREBASE_API_CREDENTIAL}")
+cred = credentials.Certificate(f"{FIREBASE_API_CREDENTIAL}")
 app = firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -57,11 +57,9 @@ class FirestoreDB():
         if self.info is None:
             if self._auto_init:
                 self.init_business(self.business_name)
-                print(f"Warning: No business found under the name '{
-                      business_name}'! However, auto_init is set to True so wae already initialized the business for you!")
+                print(f"Warning: No business found under the name '{business_name}'! However, auto_init is set to True so wae already initialized the business for you!")
             else:
-                print(f"Warning: No business found under the name '{
-                      business_name}'! Please initialize the business using the 'init_business' method first!")
+                print(f"Warning: No business found under the name '{business_name}'! Please initialize the business using the 'init_business' method first!")
         else:
             self.info = {
                 "id": self.info.id,
@@ -79,8 +77,7 @@ class FirestoreDB():
             start = datetime.now()
             print(f"Start running function [green]{func.__name__}[/]")
             result = func(self, *args, **kwargs)
-            print(f"Function: [green]{
-                  func.__name__}[/], execution time: {(datetime.now() - start).seconds} s.")
+            print(f"Function: [green]{func.__name__}[/], execution time: {(datetime.now() - start).seconds} s.")
             return result
         return wrapper
 
@@ -189,7 +186,7 @@ class FirestoreDB():
         if not doc.exists:
             if self._auto_init:
                 self._emails_collection_ref.document(
-                    "existing_message_ids").st({})
+                    "existing_message_ids").set({})
                 return {}
             else:
                 raise RuntimeError(

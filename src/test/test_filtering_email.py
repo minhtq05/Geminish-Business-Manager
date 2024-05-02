@@ -3,6 +3,7 @@ from rich import print
 from src.api.gmail.service import GmailService
 from src.api.gemini.agents import GeminiCustomerFeedbackAgent
 from src.api.firestore.firestore import FirestoreDB
+from src.api.types import Product
 '''
 Test flow: all messages -> filter messages -> print filtered messages
 '''
@@ -13,7 +14,7 @@ def main(business_name, background, products):
         background=background,
         products=products
     )
-    token = FirestoreDB()
+    token = FirestoreDB(business_name)
     gmail = GmailService(business_name, token.get_gmail_token())
     messages = gmail.get_all_messages()
     print(messages)
@@ -27,7 +28,8 @@ if __name__ == "__main__":
 
     business_name = 'The Coffee House',
     background = 'You are a professional at filtering messages',
-    products = ['Black Coffee', 'White Coffee']
+    products = [Product(1000,'Black Coffee', 'A coffee that is black'),
+                Product(10000, 'White Coffee', 'A coffee that is white')]
     main(business_name, background, products)
 
     end = time.perf_counter()

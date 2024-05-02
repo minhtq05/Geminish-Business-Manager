@@ -142,7 +142,7 @@ class GmailService():
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     #   "credentials.json", SCOPES
-                    f"/Users/admin/PycharmProjects/Geminish-Business-Manager/src/api/gmail/client_secret_561924726081-64am81sai7j38a66hmvjepqtohvf86sa.apps.googleusercontent.com.json", SCOPES
+                    GMAIL_API_CREDENTIAL, SCOPES
                 )
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run

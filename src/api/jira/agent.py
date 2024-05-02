@@ -54,14 +54,13 @@ class Jira():
         """
         ticket_list = []
 
-        for i in range(len(option_list) - 1):
-            summary = option_list[i]
-            description = option_list[i + 1]
+        for i in range(len(option_list)):
+            option = option_list[i]
+            summary = option[0]
+            description = option[1]
             ticket_list.append(JiraTicket(key, product, summary, description))
         return ticket_list
 
-    def add_custom_jira_ticket(self, key: str, product: str, summary: str, description: str):
-        return JiraTicket(key, product, summary, description)
 
 
 if __name__ == "__main__":

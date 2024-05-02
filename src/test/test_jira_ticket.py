@@ -1,7 +1,8 @@
 import time
 from src.backend.business import BusinessAgent
+from src.api.types import Product
 '''
-Test flow: all messages -> filter messages -> get report 
+Test flow: all messages -> filter messages 
 -> improvements option -> upload all option to Jira
 
 Refer to this video to learn how to use the Jira for testing: 
@@ -13,14 +14,17 @@ def main(business_name, products, key):
         business_name=business_name,
         products=products
     )
-    agent.upload_issue(key)
-
+    payload = agent.get_all_issue(key)
+    print(payload)
+    res = agent.upload_issue(payload)
+    print(res)
 
 if __name__ == "__main__":
     start = time.perf_counter()
     key = 'ARP'
     business_name = 'The Coffee House',
-    products = ['Black Coffee', 'White Coffee']
+    products =  [Product(1000,'Black Coffee', 'A coffee that is black'),
+                Product(10000, 'White Coffee', 'A coffee that is white')]
 
     main(business_name, products, key)
 

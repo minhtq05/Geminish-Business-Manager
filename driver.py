@@ -199,7 +199,8 @@ async def push_issues_to_jira(request: Request):
     """
     data = await request.json()
     print(data)
-    output = gemini_bm.upload_issue(data)
+    tickets = data.get('tickets', [])
+    output = gemini_bm.upload_issue(tickets)
     return output
 
 

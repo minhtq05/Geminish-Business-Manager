@@ -161,7 +161,7 @@ You can now use all the features of this business!""")
     def get_improvements_options(self) -> dict:
         """
         dict structure:
-        {'product_name': [[summary 1, description 1], [summary 2, description 2]]                 [summary 3, description 3]]}
+        {'product_name': [[summary 1, description 1], [summary 2, description 2]], [summary 3, description 3]]}
         Use Gemini AI to generate a product improvement options from filtered messages
         """
         options = None
@@ -203,6 +203,9 @@ You can now use all the features of this business!""")
         create a list of JiraTicket from list of improvement options
         """
         option_list_raw = self.get_improvements_options()
+        if option_list_raw is None or option_list_raw == {}:
+            return []
+
         ticket_list = []
         for product, options in option_list_raw.items():
             jira_ticket_list = self._jira.option_to_jira(key, product, options)

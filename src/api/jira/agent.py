@@ -53,6 +53,8 @@ class Jira():
         :return:
         """
         ticket_list = []
+        if option_list is None or option_list == {}:
+            return ticket_list
 
         for i in range(len(option_list)):
             option = option_list[i]

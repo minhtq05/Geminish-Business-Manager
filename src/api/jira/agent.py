@@ -63,8 +63,6 @@ class Jira():
             ticket_list.append(JiraTicket(key, product, summary, description))
         return ticket_list
 
-    def add_custom_jira_ticket(self, key: str, product: str, summary: str, description: str):
-        return JiraTicket(key, product, summary, description)
 
 
 if __name__ == "__main__":

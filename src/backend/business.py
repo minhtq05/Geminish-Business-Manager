@@ -193,11 +193,7 @@ You can now use all the features of this business!""")
         payload: list of Jira tickets that need to be uploaded
         Upload all ticket from payload to Jira
         """
-        jira_response = []
-        for issue in payload:
-            res = self._jira.upload_issue(issue)
-            print(issue)
-            jira_response.append(json.loads(res.text))
+        jira_response = [self._jira.upload_issue(issue) for issue in payload]
         return jira_response
 
     def get_all_issue(self, key: str) -> List[JiraTicket]:

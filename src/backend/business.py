@@ -177,12 +177,17 @@ You can now use all the features of this business!""")
             except Exception as e:
                 print(f'Error: {e}. Trying again')
                 print('Number of tries:', i+1)
-                if '429' in e:
-                    self._gemini_agent = GeminiCustomerFeedbackAgent(
-                        business_name=self.business_name,
-                        products=self.products,
-                        api = GEMINI_API_KEY_BACKUP
-                    )
+                self._gemini_agent = GeminiCustomerFeedbackAgent(
+                         business_name=self.business_name,
+                         products=self.products,
+                         api = GEMINI_API_KEY_BACKUP
+                        )
+                # if '429' in e:
+                #     self._gemini_agent = GeminiCustomerFeedbackAgent(
+                #         business_name=self.business_name,
+                #         products=self.products,
+                #         api = GEMINI_API_KEY_BACKUP
+                #     )
                 options = {}
                 time.sleep(2)
                 pass

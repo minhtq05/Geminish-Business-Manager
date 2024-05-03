@@ -7,14 +7,13 @@ from src.api.config import FIREBASE_API_CREDENTIAL
 from typing import List, Union, Dict
 from datetime import datetime, timedelta
 from rich import print
-from dotenv import load_dotenv
-import os
+
 """
 To-do list:
 - Remove init_business and give each business a unique firestore databse reference
 
 """
-load_dotenv()
+
 cred = credentials.Certificate(f"{FIREBASE_API_CREDENTIAL}")
 app = firebase_admin.initialize_app(cred)
 db = firestore.client()

@@ -3,8 +3,8 @@ import re
 import time
 from typing import List
 from datetime import datetime, timedelta
-
 from rich import print, inspect
+
 
 from src.api.config import GEMINI_API_KEY_BACKUP
 from src.api.gmail.service import GmailService
@@ -177,7 +177,7 @@ You can now use all the features of this business!""")
             except Exception as e:
                 print(f'Error: {e}. Trying again')
                 print('Number of tries:', i+1)
-                if e == '429 Resource has been exhausted (e.g. check quota).':
+                if '429' in e:
                     self._gemini_agent = GeminiCustomerFeedbackAgent(
                         business_name=self.business_name,
                         products=self.products,

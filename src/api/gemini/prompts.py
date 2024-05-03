@@ -89,7 +89,8 @@ And here are the users' feedback:
 
 
 def improvements_option(ref_products: List[Product], ref_company_name: str = None,  report: dict = None) -> str:
-    return f'''Generate a list of suggestions for a list of products for company {ref_company_name} based on a feedback report.
+    return f'''Generate a list of suggestions for a list of products for company {ref_company_name} based on customer feedbacks.
+There must be at least 3 suggestions for each product
 The output must strictly be in JSON schema:''' + '''
 {
     List all of the products here.

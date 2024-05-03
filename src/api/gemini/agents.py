@@ -1,4 +1,4 @@
-from src.api.config import GEMINI_API_KEY
+from src.api.config import GEMINI_API_KEY, GEMINI_API_KEY_BACKUP
 import google.generativeai as genai
 from src.api.types import Message
 # from rich import print, print_json
@@ -49,11 +49,12 @@ class GeminiCustomerFeedbackAgent():
         self.business_name = business_name
         self.products = products
         self.language = language
-        genai.configure(api_key=api)
+        self.api = api
+        genai.configure(api_key=self.api)
         self.analyze_config = genai.GenerationConfig(
             temperature=0.1,
-            top_p=0.5,
-            top_k=20,
+            top_p=0.9,
+            top_k=3,
         )
         self.generate_config = genai.GenerationConfig(
             temperature=0.7,
@@ -142,15 +143,30 @@ Your task is to:
         Filter spam and unrelated messages from a list of messages
         """
         for message in messages:
-            del message["type"], message['id'], message['send_date'], message['content_type'], message['labels']
-        unempty_message = [message for message in messages if message.get("body", "") != ""]
-        messages = unempty_message
-        prompt = filter_spam_prompt(
-            self.products, self.business_name, messages)
-        filter = self.execute('analyzer', prompt)
-        filter = filter.strip().split(',')
-        filter = [True if x == "True" else False for x in filter]
-        messages = [m for i, m in enumerate(messages) if filter[i]]
+            del message["type"], message['id'], message['send_date'], message['content_type'], message['labels'], message['receiver']
+
+        unempty_messages = [message for message in messages if message.get("body", "") != ""]
+
+        messages_chunk = [unempty_messages[i:i + 10] for i in range(0, len(unempty_messages), 10)]
+        final_messages = []
+
+        for i in range(3):
+            try:
+                for many_messages in messages_chunk:
+                    prompt = filter_spam_prompt(
+                        self.products, self.business_name, list(many_messages))
+                    filter = self.execute('analyzer', prompt)
+                    filter = filter.strip().split(',')
+                    filter = [True if x == "True" else False for x in filter]
+                    print(filter)
+                    final_messages.extend(m for i, m in enumerate(many_messages) if filter[i])
+                break
+            except Exception as e:
+                print(f'Error: {e}. Trying again')
+                print('Number of tries:', i + 1)
+                if '429' in e:
+                    self.api = GEMINI_API_KEY_BACKUP
+                pass
         return messages
 
     def create_improvements_option(self, report=None) -> str:

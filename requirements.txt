@@ -60,7 +60,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python-jwt==2.0.1
 pytz==2024.1
-requests==2.29.0
+requests==2.31.0
 requests-oauthlib==2.0.0
 requests-toolbelt==0.10.1
 rich==13.7.1

@@ -34,7 +34,8 @@ The main structure of the driver is as follows:
         * /feedbacks: the route for getting all the feedbacks from the customers
         * /reports: the route for getting all the reports after analyzing the feedbacks
         * /reports/summarize: the route for summarizing the reports into a total summary of all feedbacks
-
+        * /jira: the route for getting all the jira viable options, users choose 1 out of 3 per ticket
+        * /jira/upload: the route for uploading the jira tickets to the jira project, accept a list of tickets
         
 Other than that, you don't have to worry about anything else.
 
@@ -199,7 +200,8 @@ async def push_issues_to_jira(request: Request):
     """
     data = await request.json()
     print(data)
-    output = gemini_bm.upload_issue(data)
+    tickets = data.get('tickets', [])
+    output = gemini_bm.upload_issue(tickets)
     return output
 
 
@@ -219,4 +221,4 @@ async def push_issues_to_jira(request: Request):
 # async def testanalyzer():
 #     return StreamingResponse(gemini_bm._gemini_agent.test_model_analyzer(), media_type='text/event-stream')
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=5001)
+    uvicorn.run(app, host="0.0.0.0", port=5000)

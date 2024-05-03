@@ -143,16 +143,18 @@ Your task is to:
         Filter spam and unrelated messages from a list of messages
         """
         for message in messages:
-            del message["type"], message['id'], message['send_date'], message['content_type'], message['labels'], message['receiver']
+            del message["type"], message['id'], message['send_date'],\
+                message['content_type'], message['labels'], message['receiver']
 
         unempty_messages = [message for message in messages if message.get("body", "") != ""]
 
-        messages_chunk = [unempty_messages[i:i + 10] for i in range(0, len(unempty_messages), 10)]
+        messages_chunks = [unempty_messages[i:i + 10] for i in range(0, len(unempty_messages), 10)]
+
         final_messages = []
 
         for i in range(3):
             try:
-                for many_messages in messages_chunk:
+                for many_messages in messages_chunks:
                     prompt = filter_spam_prompt(
                         self.products, self.business_name, list(many_messages))
                     filter = self.execute('analyzer', prompt)
@@ -167,7 +169,12 @@ Your task is to:
                 if '429' in e:
                     self.api = GEMINI_API_KEY_BACKUP
                 pass
-        return messages
+        final_messages_1 = []
+        for message in final_messages:
+            for product in self.products:
+                if product['name'].lower() in message['body'].lower():
+                    final_messages_1.append(message)
+        return final_messages_1
 
     def create_improvements_option(self, report=None) -> str:
         prompt = improvements_option(self.products, self.business_name, report)

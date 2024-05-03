@@ -1,5 +1,6 @@
 from datetime import datetime
-from typing import List
+from typing import List, Literal
+
 
 def Message(id: str, sender: str, receiver: str, send_date: datetime, content_type: str, labels: List[str], subject: str, body: str):
     return {
@@ -14,7 +15,8 @@ def Message(id: str, sender: str, receiver: str, send_date: datetime, content_ty
         'body': body
     }
 
-def User(email: str, password: str, is_admin: bool, created_on: datetime=datetime.now()):
+
+def User(email: str, password: str, is_admin: bool, created_on: datetime = datetime.now()):
     return {
         "email": email,
         "password": password,
@@ -22,9 +24,34 @@ def User(email: str, password: str, is_admin: bool, created_on: datetime=datetim
         "created_on": created_on
     }
 
+
 def Product(id: int, name: str, description: str):
     return {
         'id': id,
         'name': name,
         'description': description
     }
+
+
+def JiraTicket(key: str, product: str, summary: str, description: str):
+    return {
+        "fields": {
+            "project":
+                {
+                    "key": key
+                },
+            "summary": product+': '+summary,
+            "description": description,
+            "issuetype": {
+                "name": "Task"
+            }
+        }
+    }
+
+
+def ProductReport(id: str, name: str, status: Literal["mostly positive", "somewhat positive", "neutral",  "somewhat negative", "mostly negative"], summary: List[str]):
+    pass
+
+
+def Report(sender: str, products: List[dict]):
+    pass

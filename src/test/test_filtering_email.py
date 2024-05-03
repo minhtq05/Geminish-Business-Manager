@@ -1,5 +1,5 @@
 import time
-from rich import print
+from rich import print, print_json
 from src.api.gmail.service import GmailService
 from src.api.gemini.agents import GeminiCustomerFeedbackAgent
 from src.api.firestore.firestore import FirestoreDB
@@ -17,7 +17,6 @@ def main(business_name, background, products):
     token = FirestoreDB(business_name)
     gmail = GmailService(business_name, token.get_gmail_token())
     messages = gmail.get_all_messages()
-    print(messages)
 
     print('Lenght',len(messages))
     filtered_messages = filter_agent.filter_messages(messages)

@@ -3,8 +3,8 @@ import re
 import time
 from typing import List
 from datetime import datetime, timedelta
-
 from rich import print, inspect
+
 
 from src.api.config import GEMINI_API_KEY_BACKUP
 from src.api.gmail.service import GmailService
@@ -177,7 +177,7 @@ You can now use all the features of this business!""")
             except Exception as e:
                 print(f'Error: {e}. Trying again')
                 print('Number of tries:', i+1)
-                if e == '429 Resource has been exhausted (e.g. check quota).':
+                if '429' in e:
                     self._gemini_agent = GeminiCustomerFeedbackAgent(
                         business_name=self.business_name,
                         products=self.products,
@@ -193,11 +193,7 @@ You can now use all the features of this business!""")
         payload: list of Jira tickets that need to be uploaded
         Upload all ticket from payload to Jira
         """
-        jira_response = []
-        for issue in payload:
-            res = self._jira.upload_issue(issue)
-            print(issue)
-            jira_response.append(json.loads(res.text))
+        jira_response = [self._jira.upload_issue(issue) for issue in payload]
         return jira_response
 
     def get_all_issue(self, key: str) -> List[JiraTicket]:
@@ -207,7 +203,6 @@ You can now use all the features of this business!""")
         create a list of JiraTicket from list of improvement options
         """
         option_list_raw = self.get_improvements_options()
-
         ticket_list = []
         for product, options in option_list_raw.items():
             jira_ticket_list = self._jira.option_to_jira(key, product, options)

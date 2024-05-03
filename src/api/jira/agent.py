@@ -53,6 +53,8 @@ class Jira():
         :return:
         """
         ticket_list = []
+        if option_list is None or option_list == {}:
+            return ticket_list
 
         for i in range(len(option_list)):
             option = option_list[i]
@@ -61,8 +63,6 @@ class Jira():
             ticket_list.append(JiraTicket(key, product, summary, description))
         return ticket_list
 
-    def add_custom_jira_ticket(self, key: str, product: str, summary: str, description: str):
-        return JiraTicket(key, product, summary, description)
 
 
 if __name__ == "__main__":

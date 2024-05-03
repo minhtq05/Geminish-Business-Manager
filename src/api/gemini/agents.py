@@ -142,19 +142,17 @@ Your task is to:
         """
         Filter spam and unrelated messages from a list of messages
         """
-        CHUNK_SIZE = 20
-        RETRY = 3 # Called then model 3 times to get the right json format
         for message in messages:
             del message["type"], message['id'], message['send_date'],\
                 message['content_type'], message['labels'], message['receiver']
 
         unempty_messages = [message for message in messages if message.get("body", "") != ""]
 
-        messages_chunks = [unempty_messages[i:i + CHUNK_SIZE] for i in range(0, len(unempty_messages), CHUNK_SIZE)]
+        messages_chunks = [unempty_messages[i:i + 10] for i in range(0, len(unempty_messages), 10)]
 
         final_messages = []
 
-        for i in range(RETRY):
+        for i in range(3):
             try:
                 for many_messages in messages_chunks:
                     prompt = filter_spam_prompt(
@@ -168,10 +166,8 @@ Your task is to:
             except Exception as e:
                 print(f'Error: {e}. Trying again')
                 print('Number of tries:', i + 1)
-                self.api = GEMINI_API_KEY_BACKUP
-
-                # if '429' in e:
-                #     self.api = GEMINI_API_KEY_BACKUP
+                if '429' in e:
+                    self.api = GEMINI_API_KEY_BACKUP
                 pass
         final_messages_1 = []
         for message in final_messages:

@@ -1,3 +1,4 @@
+from random import randrange
 import firebase_admin
 from firebase_admin import credentials, firestore
 from firebase_admin.firestore import Query
@@ -93,6 +94,8 @@ class FirestoreDB():
             self._report_doc = self._business_db.collection(
                 "reports").document("reports")
 
+
+
     def initialize_required(func):
         def wrapper(self, *args, **kwargs):
             if not self.is_initialized:
@@ -179,6 +182,19 @@ class FirestoreDB():
             "existing_message_ids").update(new_message_ids)
         print(f"Add/Update new {len(emails_list)} message(s) to the database!")
 
+    def add_filtered_messages(self, filtered_messages: List[Message]) -> None:
+
+        for message in filtered_messages:
+            id = randrange(0,9999999999)
+            db.collection("filtered messages").document(str(id)).set({
+                'sender': message["sender"],
+                'subject': message["subject"],
+                'body': message["body"]
+            })
+
+        print(f"Well you called the function")
+    def get_filled_messages(self) -> List[Message]:
+        return db.collection("filtered messages").stream()
     @timeit
     def get_existing_message_ids(self) -> List[str]:
         doc = self._emails_collection_ref.document(

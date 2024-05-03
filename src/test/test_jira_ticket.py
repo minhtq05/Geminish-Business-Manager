@@ -1,4 +1,5 @@
 import time
+from rich import print
 from src.backend.business import BusinessAgent
 from src.api.types import Product
 '''
@@ -16,8 +17,8 @@ def main(business_name, products, key):
     )
     payload = agent.get_all_issue(key)
     print(payload)
-    res = agent.upload_issue(payload)
-    print(res)
+    #res = agent.upload_issue(payload)
+    #print(res)
 
 if __name__ == "__main__":
     start = time.perf_counter()

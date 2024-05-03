@@ -1,32 +1,46 @@
-import User from "@/components/user";
+
 import React, { useEffect, useState } from "react";
-import { FeedbackDataType } from "@/data/types";
 import CardUI from "@/components/card";
 import ExpandableContent from "@/components/expandableContent";
-import DropDown from "@/components/dropDown";
 import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import customFetch from "@/utils/customFetch";
 
-const JiraPage: React.FC = () => {
-  const [jiraData, setJiraData] = useState<{}[]>([]);
+interface JiraDataType {
+  fields: {
+    summary: string;
+    description: string;
+  };
+}
 
-  const getFeedbackData = async () => {
+const JiraPage: React.FC = () => {
+  const [jiraData, setJiraData] = useState<JiraDataType[]>([]);
+
+  const getJiraData = async () => {
     try {
       const search = new URLSearchParams();
       search.append("project_key", "ARP");
       const JiraDataRequest = await customFetch.get("/jira", {
         params: search,
       });
+      console.log(JSON.parse(JiraDataRequest.request.response));
+      if (JiraDataRequest.status !== 200) {
+        throw new Error("Failed to fetch data");
+      }
+      if (!("tickets" in JSON.parse(JiraDataRequest.request.response))) {
+        throw new Error("Invalid response");
+      }
+
       setJiraData(JSON.parse(JiraDataRequest.request.response)["tickets"]);
+      console.log(jiraData);
     } catch (error) {
       console.log(error);
     }
   };
 
   useEffect(() => {
-    getFeedbackData();
+    if (process.env.NODE_ENV === "development") {
+      getJiraData();
+    }
     // localStorage.clear();
   }, []);
   return (
@@ -34,16 +48,18 @@ const JiraPage: React.FC = () => {
       className="bg-[#F9F9F9] flex flex-col justify-start items-center gap-8 h-[100dvh] py-4 overflow-y-auto"
       id="email-container"
     >
-      <h1 className="text-4xl font-bold text-indigo-600">Feedbacks</h1>
+      <h1 className="text-4xl font-bold text-indigo-600">Jira</h1>
       <Separator />
-      {jiraData.map((data: any, index: number) => {
+      {jiraData.map((data: JiraDataType, index: number) => {
         return (
           <CardUI
+            className="w-3/4"
             key={index}
             headerComponent={data.fields.summary}
             colorScheme={{ bgColor: "bg-white", textColor: "text-black" }}
           >
-            <ExpandableContent content={data.fields.description} />
+            {/* <ExpandableContent content={data.fields.description} /> */}
+            <p>{data.fields.description}</p>
           </CardUI>
         );
       })}

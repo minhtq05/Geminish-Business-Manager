@@ -8,7 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import React from "react";
 interface CardUIProps {
-  headerComponent: React.ReactNode;
+  headerComponent?: React.ReactNode;
   className?: string;
   children?: React.ReactNode | React.ReactNode[];
   footerComponent?: React.ReactNode | string;
@@ -32,16 +32,22 @@ const CardUI: React.FC<CardUIProps> = ({
     : { bgColor: "text-current", textColor: "bg-current" };
   return (
     <Card
-      className={cn("lg subpixel-antialiased rounded-md", className, bgColor)}
+      className={cn(
+        "lg subpixel-antialiased rounded-md py-6",
+        className,
+        bgColor
+      )}
       {...props}
     >
-      <CardHeader className={cn("px-2 rounded-t-md", textColor)}>
-        {typeof headerComponent === "string" ? (
-          <CardTitle className="font-extrabold">{headerComponent}</CardTitle>
-        ) : (
-          headerComponent
-        )}
-      </CardHeader>
+      {headerComponent ? (
+        <CardHeader className={cn("px-2 rounded-t-md", textColor)}>
+          {typeof headerComponent === "string" ? (
+            <CardTitle className="font-extrabold">{headerComponent}</CardTitle>
+          ) : (
+            headerComponent
+          )}
+        </CardHeader>
+      ) : null}
       <CardContent
         className={cn(
           "px-2 py-6",

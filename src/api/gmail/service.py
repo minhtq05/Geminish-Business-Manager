@@ -1,4 +1,3 @@
-import os.path
 import base64
 import re
 import json
@@ -21,7 +20,7 @@ SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
 # The main Gmail API service for loading messages, sending emails, and many other functionalities.
 class GmailService():
-    def __init__(self, business_name: str, gmail_token: Dict) -> None | Exception:
+    def __init__(self, business_name: str, gmail_token: Dict = None) -> None | Exception:
         self._business_name = business_name
         self.gmail_token = gmail_token # This one is a credential dict and need to be kept as a secret!
         self._service, self.gmail_token = self._gmail_service()
@@ -143,7 +142,7 @@ class GmailService():
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     #   "credentials.json", SCOPES
-                    f"src/api/gmail/{GMAIL_API_CREDENTIAL}", SCOPES
+                    GMAIL_API_CREDENTIAL, SCOPES
                 )
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run

@@ -20,6 +20,11 @@ To get started with Agilizer, please follow these steps:
 5. Leverage Data-Driven Insights: Leverage the advanced analytics tools to gain valuable insights and make informed decisions.
 
 ## Usage for Developers
+To start running Agilizer, you simply need to run this command:
+```bash
+uvicorn driver:app --reload --host 0.0.0.0 --port 5000
+```
+
 Here are things you need to know to start working with Agilizer as a developer:
 
 1. **Databases:**

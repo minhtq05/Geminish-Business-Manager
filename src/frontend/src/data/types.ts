@@ -12,6 +12,15 @@ export type FeedbackDataType = {
   content: { subject: string; body: string };
   date: string;
 };
+export type SummaryDataType = {
+  sender: string;
+  products?: {
+    id: string;
+    name: string;
+    status: string;
+    summary: string[];
+  }[];
+};
 
 export type AnalyticText = {
   heading: string;
@@ -22,6 +31,8 @@ export type NavLink = {
   name: string;
   url: string;
 };
+
+// mock data
 export type feedbackType = {
   email: string;
   id: string;

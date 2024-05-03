@@ -199,7 +199,6 @@ async def push_issues_to_jira(request: Request):
     :return: response from jira if the file has been uploaded successfully
     """
     data = await request.json()
-    print(data)
     tickets = data.get('tickets', [])
     output = gemini_bm.upload_issue(tickets)
     return output

@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 FIREBASE_API_CREDENTIAL = os.getenv('FIREBASE_API_CREDENTIAL')
 FIREBASE_API_KEY = os.getenv('FIREBASE_API_KEY')
 FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID')

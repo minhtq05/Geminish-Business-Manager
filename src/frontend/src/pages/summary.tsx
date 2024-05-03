@@ -7,21 +7,62 @@ import { Box } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import customFetch from "@/utils/customFetch";
 import CustomTabPanel from "@/components/customTabPanel";
-
+import { SummaryDataType } from "@/data/types";
+import CardUI from "@/components/card";
 interface SummaryPageProps {
   summaryText?: { heading?: string; body: string };
 }
+interface ProductType {
+  senders: string[];
+  status: string[];
+  summary: string[];
+}
 
+interface RawProductType {
+  sender: string;
+  products: {}[];
+}
+
+interface ProductReportsType {
+  [key: string]: ProductType;
+}
 const SummaryPage = ({ summaryText }: SummaryPageProps) => {
   const [value, setValue] = useState(0);
+  const [productList, setProductList] = useState<ProductReportsType>({});
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
+  const reformatData = (data: RawProductType[]): ProductReportsType => {
+    const productReports: ProductReportsType = {};
+
+    data.forEach((report: any) => {
+      report.products.forEach((product: any) => {
+        const productName = product.name;
+
+        if (!productReports[productName]) {
+          productReports[productName] = {
+            senders: [],
+            status: [],
+            summary: [],
+          };
+        }
+
+        productReports[productName].senders.push(report.sender);
+        productReports[productName].status.push(product.status);
+        productReports[productName].summary.push(...product.summary);
+      });
+    });
+
+    return productReports;
+  };
   const getSummaryData = async () => {
     try {
       const summaryRequest = await customFetch.get("/reports");
-      console.log(summaryRequest.data.reports);
+      // raw data
+
+      const reformattedData = reformatData(summaryRequest.data.reports);
+      setProductList(reformattedData);
     } catch (error) {
       console.log(`Error: ${error}`);
     }
@@ -44,56 +85,47 @@ const SummaryPage = ({ summaryText }: SummaryPageProps) => {
           onChange={handleChange}
           aria-label="basic tabs example"
         >
-          <Tab label="Item One" />
-          <Tab label="Item Two" />
-          <Tab label="Item Three" />
+          {Object.entries(productList).map(
+            ([name, value]: [string, ProductType]) => {
+              return <Tab key={name} label={name} />;
+            }
+          )}
         </Tabs>
       </Box>
-      <CustomTabPanel value={value} index={0}>
-        <User fallBack="Chatbot" />{" "}
-        <ExpandableComponent
-          content={
-            summaryText
-              ? summaryText
-              : {
-                  heading:
-                    "Chatbot is still gathering data for feedback, please come later",
-                  body: "Generating summary data...",
-                }
-          }
-          showsFull={true}
-        />
-      </CustomTabPanel>
-      <CustomTabPanel value={value} index={1}>
-        <User fallBack="Chatbot" />{" "}
-        <ExpandableComponent
-          content={
-            summaryText
-              ? summaryText
-              : {
-                  heading:
-                    "Chatbot is still gathering data for feedback, please come later",
-                  body: "Co cai cl ay dcmm",
-                }
-          }
-          showsFull={true}
-        />
-      </CustomTabPanel>
-      <CustomTabPanel value={value} index={2}>
-        <User fallBack="Chatbot" />{" "}
-        <ExpandableComponent
-          content={
-            summaryText
-              ? summaryText
-              : {
-                  heading:
-                    "Chatbot is still gathering data for feedback, please come later",
-                  body: "Co cai cl ay dcmm",
-                }
-          }
-          showsFull={true}
-        />
-      </CustomTabPanel>
+      {Object.entries(productList).map(
+        (
+          [name, productData]: [name: string, productData: ProductType],
+          index
+        ) => {
+          return (
+            <CustomTabPanel key={name} value={value} index={index}>
+              <div className="flex flex-col gap-4">
+                {Object.entries(productData).map(
+                  ([key, value]: [key: string, value: string[]]) => {
+                    return (
+                      <CardUI
+                        colorScheme={{
+                          bgColor: "bg-white",
+                          textColor: "text-slate-600",
+                        }}
+                      >
+                        <h1 className="text-2xl text-gray-700 font-bold my-2 break-all">
+                          {key}
+                        </h1>
+                        <div className="flex flex-col gap-4">
+                          {value.map((item: string, index: number) => {
+                            return <p>{item}</p>;
+                          })}
+                        </div>
+                      </CardUI>
+                    );
+                  }
+                )}
+              </div>
+            </CustomTabPanel>
+          );
+        }
+      )}
     </div>
   );
 };

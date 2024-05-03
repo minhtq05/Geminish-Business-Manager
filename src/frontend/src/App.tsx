@@ -4,6 +4,7 @@ import FeedbackPage from "./pages/feedback";
 import Home from "./pages/home";
 import { EmailData } from "./data/constants";
 import SummaryPage from "./pages/summary";
+import JiraPage from "./pages/jira";
 function App() {
   return (
     <BrowserRouter>
@@ -30,6 +31,14 @@ function App() {
           element={
             <DashboardLayout>
               <SummaryPage />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/jira"
+          element={
+            <DashboardLayout>
+              <JiraPage />
             </DashboardLayout>
           }
         />
